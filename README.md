@@ -5,7 +5,25 @@
 + [X] 모든 코드 이관
 
 ### 1 단계 : 엔티티 매핑
-+ [ ] 상품 엔티티 
++ [ ] jpa를 사용할 수 있도록 기본 설정 수정
+  + [ ] test 환경에서 동작 쿼리를 확인할 수 있도록 설정(`format_sql`=true, `show_sql`=true)
+  + [ ] `spring.jpa.hibernate.ddl-auto`=create-drop 설정
+  + [ ] h2에서 mysql driver를 사용하도록 설정
+  + [ ] sql 스키마 수정
++ [ ] 상품 엔티티, repository jpa를 활용하도록 리펙토링
+  + [ ] 상품 엔티티 수정
+  + [ ] 상품 repository 인터페이스 생성
+  + [ ] 상품 repository 테스트 코드 작성
++ [ ] 사용자 엔티티, repository jpa를 활용하도록 리펙토링
+  + [ ] 사용자 엔티티 수정
+  + [ ] 사용자 repository 인터페이스 생성
+  + [ ] 사용자 repository 테스트 코드 작성
++ [ ] 위시리스트 엔티티, repository jpa를 활용하도록 리펙토링
+  + [ ] 위시리스트 엔티티 수정
+  + [ ] 위시리스트 repository 인터페이스 생성
+  + [ ] 위시리스트 repository 테스트 코드 작성
+  
+  
 
 ## 이전 단계 요약
 
