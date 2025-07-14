@@ -1,6 +1,6 @@
-package gift.wishlist;
+package gift.E2ETest.wishlist;
 
-import gift.AbstractControllerTest;
+import gift.E2ETest.AbstractControllerTest;
 import gift.dto.product.ProductCreateRequest;
 import gift.dto.product.ProductDefaultResponse;
 import io.restassured.RestAssured;

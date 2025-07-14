@@ -1,4 +1,4 @@
-package gift;
+package gift.E2ETest;
 
 import gift.dto.auth.LoginRequest;
 import gift.dto.auth.TokenResponse;

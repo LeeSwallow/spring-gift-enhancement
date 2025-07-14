@@ -1,6 +1,6 @@
-package gift.product;
+package gift.E2ETest.product;
 
-import gift.AbstractControllerTest;
+import gift.E2ETest.AbstractControllerTest;
 import gift.dto.auth.LoginRequest;
 import gift.dto.auth.TokenResponse;
 import gift.dto.product.ProductCreateRequest;
@@ -55,11 +55,11 @@ public abstract class AbstractProductTest extends AbstractControllerTest {
 
         Map<UserRole, UserCreateRequest> userRequests = Map.of(
                 UserRole.ROLE_ADMIN,
-                new UserCreateRequest("user1@example.com", "password123!", "ROLE_ADMIN"),
+                new UserCreateRequest("prodUser1@example.com", "password123!", "ROLE_ADMIN"),
                 UserRole.ROLE_MD,
-                new UserCreateRequest("user2@example.com", "password123!", "ROLE_MD"),
+                new UserCreateRequest("prodUser2@example.com", "password123!", "ROLE_MD"),
                 UserRole.ROLE_USER,
-                new UserCreateRequest("user3@example.com", "password123!", "ROLE_USER")
+                new UserCreateRequest("prodUser3@example.com", "password123!", "ROLE_USER")
         );
         this.testUsers = new HashMap<>();
         this.testUserTokens = new HashMap<>();
@@ -89,27 +89,26 @@ public abstract class AbstractProductTest extends AbstractControllerTest {
 
     @AfterEach
     public void tearDown() {
-        if (this.testProductIds == null || this.testProductIds.isEmpty()) {
-            return;
+        if (this.testProductIds != null && !this.testProductIds.isEmpty()) {
+            for (ProductDefaultResponse response : this.testProductIds) {
+                RestAssured.given()
+                        .header(AUTH_HEADER_KEY, this.adminToken)
+                        .when()
+                        .delete(getBaseUrl() + "/api/products/" + response.id())
+                        .then()
+                        .statusCode(204);
+            }
+            this.testProductIds.clear();
         }
-        for (ProductDefaultResponse response : this.testProductIds) {
-            RestAssured.given()
-                    .header(AUTH_HEADER_KEY, this.adminToken)
-                    .when()
-                    .delete(getBaseUrl() + "/api/products/" + response.id())
-                    .then()
-                    .statusCode(204);
-        }
-        this.testProductIds.clear();
-
         for (UserAdminResponse user : this.testUsers.values()) {
             RestAssured.given()
                     .header(AUTH_HEADER_KEY, this.adminToken)
                     .when()
-                    .delete(getBaseUrl() + "/api/users/" + user.id())
+                    .delete(getBaseUrl() + "/api/users/{id}", user.id())
                     .then()
                     .statusCode(204);
         }
+        this.testUsers.clear();
     }
 
     public String getRequestUrl() {

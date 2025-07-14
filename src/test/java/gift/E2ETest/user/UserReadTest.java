@@ -1,4 +1,4 @@
-package gift.user;
+package gift.E2ETest.user;
 
 import gift.dto.user.UserAdminResponse;
 import gift.entity.UserRole;

@@ -1,4 +1,4 @@
-package gift.product;
+package gift.E2ETest.product;
 
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +16,6 @@ public class ProductDeleteTest extends AbstractProductTest {
     public void Product_Delete_Success() {
         Long testProductId = this.testProductIds.getFirst().id(); // 테스트용 제품 ID 가져오기
         String url = getRequestUrl() + "/{id}";
-        System.out.println(url);
         RestAssured.given(this.spec)
                 .filter(document("상품 삭제 성공",
                         pathParameters(parameterWithName("id").description("삭제할 제품 ID")),
@@ -27,6 +26,7 @@ public class ProductDeleteTest extends AbstractProductTest {
                 .delete(url, testProductId)
                 .then()
                 .statusCode(204);
+
         this.testProductIds.removeIf(product -> product.id().equals(testProductId));
     }
 
@@ -34,7 +34,6 @@ public class ProductDeleteTest extends AbstractProductTest {
     @DisplayName("제품 삭제 실패 테스트: 존재하지 않는 제품 ID")
     public void Product_Delete_Failure_NonExistentId() {
         String url = getRequestUrl() + "/{id}";
-        System.out.println(url);
         RestAssured.given()
                 .contentType("application/json")
                 .header(AUTH_HEADER_KEY, this.adminToken)

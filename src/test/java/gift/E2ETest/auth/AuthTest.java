@@ -1,4 +1,4 @@
-package gift.auth;
+package gift.E2ETest.auth;
 
 import gift.dto.auth.LoginRequest;
 import gift.dto.auth.SignupRequest;

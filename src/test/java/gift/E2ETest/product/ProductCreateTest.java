@@ -1,4 +1,4 @@
-package gift.product;
+package gift.E2ETest.product;
 
 import gift.dto.product.ProductCreateRequest;
 import gift.dto.product.ProductDefaultResponse;

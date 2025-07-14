@@ -1,4 +1,4 @@
-package gift.product;
+package gift.E2ETest.product;
 
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;

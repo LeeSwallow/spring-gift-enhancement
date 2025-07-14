@@ -1,7 +1,7 @@
-package gift.user;
+package gift.E2ETest.user;
 
 
-import gift.AbstractControllerTest;
+import gift.E2ETest.AbstractControllerTest;
 import gift.dto.auth.LoginRequest;
 import gift.dto.auth.TokenResponse;
 import gift.dto.user.UserAdminResponse;

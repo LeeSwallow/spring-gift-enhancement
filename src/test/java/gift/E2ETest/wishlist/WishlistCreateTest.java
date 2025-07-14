@@ -1,4 +1,4 @@
-package gift.wishlist;
+package gift.E2ETest.wishlist;
 
 import gift.dto.product.ProductDefaultResponse;
 import gift.dto.wishlist.CreateWishedProductRequest;

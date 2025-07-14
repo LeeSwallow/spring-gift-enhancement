@@ -1,6 +1,6 @@
-package gift.auth;
+package gift.E2ETest.auth;
 
-import gift.AbstractControllerTest;
+import gift.E2ETest.AbstractControllerTest;
 import gift.dto.user.UserAdminResponse;
 import gift.dto.user.UserCreateRequest;
 import io.restassured.RestAssured;
