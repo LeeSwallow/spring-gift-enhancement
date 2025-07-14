@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS  roles (
                         name VARCHAR(20) NOT NULL,
                         PRIMARY KEY (name)
-);
+) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS users (
                        id BIGINT AUTO_INCREMENT,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                        PRIMARY KEY (id)
-);
+) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS user_roles (
                             user_id BIGINT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
                             PRIMARY KEY (user_id, role_name),
                             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                             FOREIGN KEY (role_name) REFERENCES roles(name) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS products (
                           id BIGINT AUTO_INCREMENT,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS products (
                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                           PRIMARY KEY (id),
                           FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS wished_products (
                                  user_id BIGINT NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS wished_products (
                                  PRIMARY KEY (user_id, product_id),
                                  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                                  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
 
 INSERT INTO roles (name) VALUES

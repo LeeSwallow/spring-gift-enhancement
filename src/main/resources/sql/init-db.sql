@@ -1,32 +1,26 @@
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS roles;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS user_roles;
-DROP TABLE IF EXISTS wishlists;
-
-CREATE TABLE  roles (
+CREATE TABLE IF NOT EXISTS  roles (
     name VARCHAR(20) NOT NULL,
     PRIMARY KEY (name)
-);
+) engine=InnoDB;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS  users (
     id BIGINT AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE ,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
-);
+) engine=InnoDB;
 
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS  user_roles (
     user_id BIGINT NOT NULL,
     role_name VARCHAR(20) NOT NULL,
     PRIMARY KEY (user_id, role_name),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (role_name) REFERENCES roles(name) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS  products (
     id BIGINT AUTO_INCREMENT,
     name VARCHAR(15) NOT NULL,
     price BIGINT NOT NULL,
@@ -36,9 +30,9 @@ CREATE TABLE products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
-CREATE TABLE wished_products (
+CREATE TABLE IF NOT EXISTS  wished_products (
      user_id BIGINT NOT NULL,
      product_id BIGINT NOT NULL,
      quantity INT NOT NULL DEFAULT 1,
@@ -47,5 +41,5 @@ CREATE TABLE wished_products (
      PRIMARY KEY (user_id, product_id),
      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
+) engine=InnoDB;
 
