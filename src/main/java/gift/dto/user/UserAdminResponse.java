@@ -1,7 +1,7 @@
 package gift.dto.user;
 
+import gift.entity.Role;
 import gift.entity.User;
-import gift.entity.UserRole;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +20,7 @@ public record UserAdminResponse(
                 user.getEmail(),
                 user.getPassword(),
                 user.getRoles().stream()
-                        .map(UserRole::toString)
+                        .map(Role::getName)
                         .toList(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

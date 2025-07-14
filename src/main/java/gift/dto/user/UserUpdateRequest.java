@@ -1,14 +1,13 @@
 package gift.dto.user;
 
 import gift.common.validation.group.AuthenticationGroups;
+import gift.entity.Role;
 import gift.entity.User;
 import gift.common.validation.annotation.ValidPassword;
-import gift.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Null;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public record UserUpdateRequest(
@@ -23,12 +22,16 @@ public record UserUpdateRequest(
         List<String> roles
 ) {
         public User toEntity() {
-                Set<UserRole> mappedRoles = null;
+                List<Role> mappedRoles = null;
                 if (roles != null) {
                         mappedRoles = roles.stream()
-                                .map(UserRole::fromString)
-                                .collect(Collectors.toSet());
+                                .map(Role::new)
+                                .collect(Collectors.toList());
                 }
-                return new User(null, email, password, mappedRoles);
+                var user = new User();
+                user.setEmail(email);
+                user.setPassword(password);
+                user.setRoles(mappedRoles);
+                return user;
         }
 }

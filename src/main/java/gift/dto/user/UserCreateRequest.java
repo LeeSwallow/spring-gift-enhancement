@@ -1,13 +1,13 @@
 package gift.dto.user;
 
+import gift.entity.Role;
 import gift.entity.User;
 import gift.common.validation.annotation.ValidPassword;
-import gift.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-import java.util.Set;
+import java.util.List;
 
 public record UserCreateRequest(
         @NotNull(message = "이메일은 필수입니다.")
@@ -29,7 +29,11 @@ public record UserCreateRequest(
         }
 
         public User toEntity() {
-                Set<UserRole> roles = Set.of(UserRole.fromString(role));
-                return new User(null, email, password, roles);
+                List<Role> roles = List.of(new Role(role));
+                var user = new User();
+                user.setEmail(email);
+                user.setPassword(password);
+                user.setRoles(roles);
+                return user;
         }
 }
