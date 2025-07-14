@@ -2,6 +2,7 @@ package gift.common.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -106,6 +107,17 @@ public class CustomPage<T> {
 
     public static <T> Builder<T> builder(List<T> contents, Integer totalElements) {
         return new Builder<>(contents, totalElements);
+    }
+
+    public static <T> CustomPage<T> from(Page<T> page) {
+        return new CustomPage<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                (int) page.getTotalElements(),
+                page.getTotalPages(),
+                null
+        );
     }
 
     public static <F, T> CustomPage<T> convert(CustomPage<F> page, Function<F, T> converter) {

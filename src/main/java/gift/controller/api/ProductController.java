@@ -53,7 +53,7 @@ public class ProductController {
             @Valid @RequestBody ProductCreateRequest dto,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        Product product = productService.create(dto.toProduct(), auth);
+        Product product = productService.create(dto.toProduct(), auth.role(), auth.userId());
         log.info("상품 생성 성공: {}", product);
         return new ResponseEntity<>(ProductDefaultResponse.from(product), HttpStatus.CREATED);
     }
@@ -65,21 +65,9 @@ public class ProductController {
             @Valid @RequestBody ProductUpdateRequest dto,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        Product updatedProduct = productService.update(dto.toEntity(id), auth);
+        Product updatedProduct = productService.update(dto.toEntity(id), auth.role(), auth.userId());
         log.info("상품 업데이트 성공: {}", updatedProduct);
         return new ResponseEntity<>(ProductDefaultResponse.from(updatedProduct), HttpStatus.OK);
-    }
-
-    @PatchMapping("/{id}")
-    @PreAuthorize(UserRole.ROLE_USER)
-    public ResponseEntity<ProductDefaultResponse> patchProduct(
-            @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id,
-            @Valid @RequestBody ProductUpdateRequest dto,
-            @RequestAttribute("auth") CustomAuth auth
-        ) {
-        Product patchedProduct = productService.patch(dto.toEntity(id), auth);
-        log.info("상품 패치 성공: {}", patchedProduct);
-        return new ResponseEntity<>(ProductDefaultResponse.from(patchedProduct), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -88,7 +76,7 @@ public class ProductController {
             @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        productService.deleteById(id, auth);
+        productService.deleteById(id, auth.role(), auth.userId());
         log.info("상품 삭제 성공: ID={}", id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

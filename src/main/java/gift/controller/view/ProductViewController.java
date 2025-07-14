@@ -87,7 +87,7 @@ public class ProductViewController {
         try {
             validateRequest(request);
             Product product = request.toProduct();
-            Product createdProduct = productService.create(product, auth);
+            Product createdProduct = productService.create(product, auth.role(), auth.userId());
             return "redirect:/admin/products/" + createdProduct.getId();
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
