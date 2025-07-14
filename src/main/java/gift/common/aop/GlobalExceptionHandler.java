@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private Boolean showStackTrace = false;
 
-    public GlobalExceptionHandler(@Value("${server.error.include-stacktrace}")String stacktraceSetting) {
+    public GlobalExceptionHandler(@Value("${server.error.include-stacktrace:#{null}}")String stacktraceSetting) {
         if (stacktraceSetting != null && stacktraceSetting.equalsIgnoreCase("always")) {
             this.showStackTrace = true;
         }
