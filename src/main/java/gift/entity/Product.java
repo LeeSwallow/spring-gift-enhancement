@@ -1,34 +1,27 @@
 package gift.entity;
 
-import java.time.Instant;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
-public class Product extends AbstractEntity {
+@Entity
+@Table(name = "products")
+public class Product extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private Long price;
     private String imageUrl;
     private Long ownerId;
 
-    public Product(Long id, String name, Long price, String imageUrl, Long ownerId) {
-        super();
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.imageUrl = imageUrl;
-        this.ownerId = ownerId;
+    public Product() {
+
     }
 
-    public Product(
-            Long id,
-            String name,
-            Long price,
-            String imageUrl,
-            Long ownerId,
-            Instant createdAt,
-            Instant updatedAt
-    ) {
-        super(createdAt, updatedAt);
+    public Product(Long id, String name, Long price, String imageUrl, Long ownerId) {
+        super();
         this.id = id;
         this.name = name;
         this.price = price;
