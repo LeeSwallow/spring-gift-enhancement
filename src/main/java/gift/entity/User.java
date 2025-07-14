@@ -1,45 +1,32 @@
 package gift.entity;
 
-import java.time.Instant;
+import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class User extends AbstractEntity {
+@Entity
+@Table(name = "users")
+public class User extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
     private String email;
     private String password;
-    private Set<UserRole> roles;
 
-    public User(Long id, String email, String password) {
-        super();
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.roles = null;
-    }
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_name")
+    )
+    private List<Role> roles;
 
-    public User(Long id, String email, String password, Set<UserRole> roles) {
-        super();
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
-    }
-
-    public User(Long id, String email, String password, Instant createdAt, Instant updatedAt) {
-        super(createdAt, updatedAt);
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.roles = null;
-    }
-
-    public User(Long id, String email, String password, Set<UserRole> roles, Instant createdAt, Instant updatedAt) {
-        super(createdAt, updatedAt);
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
+    public User() {
     }
 
     public Long getId() {
@@ -66,13 +53,24 @@ public class User extends AbstractEntity {
         this.password = password;
     }
 
-    public void setRoles(Set<UserRole> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
 
-    public Set<UserRole> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
+
+    public Set<UserRole> getUserRoles() {
+        if (roles == null) {
+            return null;
+        }
+        return roles.stream()
+                .map(role -> UserRole.valueOf(role.getName()))
+                .collect(Collectors.toSet());
+    }
+
+
     
     @Override
     public String toString() {
