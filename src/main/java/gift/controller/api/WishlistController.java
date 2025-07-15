@@ -10,6 +10,7 @@ import gift.dto.wishlist.WishedProductResponse;
 import gift.entity.UserRole;
 import gift.entity.WishedProduct;
 import gift.service.wishlist.WishedProductService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,7 @@ public class WishlistController {
     @PostMapping()
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<WishedProductResponse> addWishlistItem(
-            @RequestBody CreateWishedProductRequest request,
+            @Valid @RequestBody CreateWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
         WishedProduct wishedProduct = wishedProductService.create(auth.userId(), request.productId(), request.quantity());
@@ -66,7 +67,7 @@ public class WishlistController {
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<?> updateWishlistItem(
             @PathVariable Long id,
-            @RequestBody UpdateWishedProductRequest request,
+            @Valid @RequestBody UpdateWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
         var wishedProduct = wishedProductService.update(auth.userId(), id, request.quantity());
@@ -76,11 +77,11 @@ public class WishlistController {
         return new ResponseEntity<>(WishedProductResponse.from(wishedProduct.get()), HttpStatus.OK);
     }
 
-    @PatchMapping("/{productId}")
+    @PatchMapping("/{id}")
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<?> patchWishlistItem(
             @PathVariable Long id,
-            @RequestBody PatchWishedProductRequest request,
+            @Valid @RequestBody PatchWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
         Optional<WishedProduct> wishedProduct;

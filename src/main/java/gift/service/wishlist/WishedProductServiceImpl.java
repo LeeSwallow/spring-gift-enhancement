@@ -1,15 +1,12 @@
 package gift.service.wishlist;
 
-import gift.common.exception.UnauthorizedException;
 import gift.common.model.CustomPage;
-import gift.entity.Product;
 import gift.entity.WishedProduct;
 import gift.repository.product.ProductRepository;
 import gift.repository.user.UserRepository;
 import gift.repository.wishlist.WishedProductRepository;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +62,7 @@ public class WishedProductServiceImpl implements WishedProductService {
         var wishedProduct = wishedProductRepository.findById(wishedProductId)
                 .orElseThrow(() -> new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId));
 
-        if (!wishedProduct.getId().equals(userId)) {
+        if (!wishedProduct.getUser().getId().equals(userId)) {
             throw new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId);
         }
         return wishedProduct;
@@ -88,7 +85,7 @@ public class WishedProductServiceImpl implements WishedProductService {
     @Transactional
     public void delete(Long userId, Long wishedProductId) {
         getById(userId, wishedProductId); // 검증을 위해 호출
-        if (!wishedProductRepository.existsById(wishedProductId)) {
+        if (!wishedProductRepository.existsByUserIdAndProductId(userId,wishedProductId)) {
             throw new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId);
         }
         wishedProductRepository.deleteById(wishedProductId);
