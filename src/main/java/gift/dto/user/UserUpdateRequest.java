@@ -1,5 +1,6 @@
 package gift.dto.user;
 
+import gift.common.validation.annotation.ValidRoleList;
 import gift.common.validation.group.AuthenticationGroups;
 import gift.entity.Role;
 import gift.entity.User;
@@ -19,6 +20,7 @@ public record UserUpdateRequest(
         String password,
         @Null(message = "role은 수정할 수 없습니다.", groups = {
                 AuthenticationGroups.UserGroup.class, AuthenticationGroups.MdGroup.class})
+        @ValidRoleList(groups = {AuthenticationGroups.AdminGroup.class})
         List<String> roles
 ) {
         public User toEntity() {
