@@ -1,28 +1,40 @@
 package gift.entity;
 
+import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.Instant;
 
-public class WishedProduct extends AbstractEntity {
+
+@Entity
+@Table(name="wished_products")
+public class WishedProduct extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private Long price;
-    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Product product;
+
     private Integer quantity;
 
-    public WishedProduct(
-            Long id,
-            String name,
-            Long price,
-            String imageUrl,
-            Integer quantity,
-            Instant createdAt,
-            Instant updatedAt
-    ) {
-        super(createdAt, updatedAt);
+
+    public WishedProduct() {
+
+    }
+
+    public WishedProduct(Long id, User user, Product product, Integer quantity) {
         this.id = id;
-        this.name = name;
-        this.price = price;
-        this.imageUrl = imageUrl;
+        this.user = user;
+        this.product = product;
         this.quantity = quantity;
     }
 
@@ -34,39 +46,27 @@ public class WishedProduct extends AbstractEntity {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public User getUser() {
+        return user;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public Long getPrice() {
-        return price;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setPrice(Long price) {
-        this.price = price;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public int getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public Long getSubtotal() {
-        return price * quantity;
     }
 }
