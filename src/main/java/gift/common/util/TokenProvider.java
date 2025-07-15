@@ -1,7 +1,6 @@
 package gift.common.util;
 
 import gift.common.exception.CriticalServerException;
-import gift.entity.Role;
 import gift.entity.UserRole;
 import gift.common.model.CustomAuth;
 import io.jsonwebtoken.Claims;
@@ -21,7 +20,6 @@ import javax.crypto.SecretKey;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,12 +58,12 @@ public class TokenProvider implements InitializingBean {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(Long userId, List<Role> authorities) {
+    public String generateToken(Long userId, Set<UserRole> authorities) {
         Instant now = Instant.now(Clock.systemDefaultZone());
         Instant expiryDate = now.plusSeconds(expiration);
 
         String authoritiesString = authorities.stream()
-                .map(Role::getName)
+                .map(UserRole::toString)
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()

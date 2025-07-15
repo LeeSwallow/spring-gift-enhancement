@@ -62,16 +62,17 @@ public class User extends BaseEntity {
     }
 
     public Set<UserRole> getUserRoles() {
-        if (roles == null) {
-            return null;
-        }
         return roles.stream()
-                .map(role -> UserRole.valueOf(role.getName()))
+                .map(Role::getName)
                 .collect(Collectors.toSet());
     }
 
+    public void setRoles(Set<UserRole> userRoles) {
+        this.roles = userRoles.stream()
+                .map(Role::new)
+                .collect(Collectors.toList());
+    }
 
-    
     @Override
     public String toString() {
         return "User{" +

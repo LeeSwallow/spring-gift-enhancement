@@ -2,6 +2,7 @@ package gift.UnitTest.repository;
 
 import gift.entity.Role;
 import gift.entity.User;
+import gift.entity.UserRole;
 import gift.repository.role.RoleRepository;
 import gift.repository.user.UserRepository;
 import org.junit.jupiter.api.*;
@@ -22,9 +23,9 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     @BeforeEach
     public void setUp() {
         roleRepository.saveAll(List.of(
-                new Role("ROLE_USER"),
-                new Role("ROLE_MD"),
-                new Role("ROLE_ADMIN")
+                new Role(UserRole.ROLE_USER),
+                new Role(UserRole.ROLE_MD),
+                new Role(UserRole.ROLE_ADMIN)
         ));
     }
 
@@ -35,7 +36,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User user = new User();
         user.setEmail("test1234@test.com");
         user.setPassword("test1234!");
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+        user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
         User savedUser = userRepository.save(user);
 
         Assertions.assertAll(
@@ -43,7 +44,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
                 () -> Assertions.assertEquals(savedUser.getEmail(), user.getEmail(), "저장된 유저의 이메일이 일치해야 합니다."),
                 () -> Assertions.assertEquals(savedUser.getPassword(), user.getPassword(), "저장된 유저의 비밀번호가 일치해야 합니다."),
                 () -> Assertions.assertFalse(savedUser.getRoles().isEmpty(), "저장된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals("ROLE_USER", savedUser.getRoles().getFirst().getName(), "저장된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, savedUser.getRoles().getFirst().getName(), "저장된 유저의 역할이 ROLE_USER여야 합니다.")
         );
     }
 
@@ -54,7 +55,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User user = new User();
         user.setEmail("test1234@test.com");
         user.setPassword("test1234!");
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+        user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
         User savedUser = userRepository.save(user);
 
         User foundUser = userRepository.findById(savedUser.getId()).orElse(null);
@@ -64,7 +65,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
                 () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail(), "조회된 유저의 이메일이 일치해야 합니다."),
                 () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword(), "조회된 유저의 비밀번호가 일치해야 합니다."),
                 () -> Assertions.assertFalse(foundUser.getRoles().isEmpty(), "조회된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals("ROLE_USER", foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
         );
     }
 
@@ -75,7 +76,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User user = new User();
         user.setEmail("test1234@test.com");
         user.setPassword("test1234!");
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+        user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
         User savedUser = userRepository.save(user);
 
         User foundUser = userRepository.findByEmail(savedUser.getEmail()).orElse(null);
@@ -85,7 +86,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
                 () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail(), "조회된 유저의 이메일이 일치해야 합니다."),
                 () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword(), "조회된 유저의 비밀번호가 일치해야 합니다."),
                 () -> Assertions.assertFalse(foundUser.getRoles().isEmpty(), "조회된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals("ROLE_USER", foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
         );
     }
 
@@ -96,19 +97,19 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User user = new User();
         user.setEmail("test1234@test.com");
         user.setPassword("test1234!");
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+        user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
         User savedUser = userRepository.save(user);
         // 유저 정보 수정
         savedUser.setEmail("modified1234@test.com");
         savedUser.setPassword("modified1234!");
-        var roles = new ArrayList<Role>(List.of(roleRepository.findByName("ROLE_MD").orElseThrow()));
+        var roles = new ArrayList<Role>(List.of(roleRepository.findByName(UserRole.ROLE_MD).orElseThrow()));
         savedUser.setRoles(roles);
         User updatedUser = userRepository.save(savedUser);
         Assertions.assertAll(
                 () -> Assertions.assertEquals(updatedUser.getEmail(), savedUser.getEmail(), "수정된 유저의 이메일이 일치해야 합니다."),
                 () -> Assertions.assertEquals(updatedUser.getPassword(), savedUser.getPassword(), "수정된 유저의 비밀번호가 일치해야 합니다."),
                 () -> Assertions.assertFalse(updatedUser.getRoles().isEmpty(), "수정된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals("ROLE_MD", updatedUser.getRoles().getFirst().getName(), "수정된 유저의 역할이 ROLE_MD여야 합니다.")
+                () -> Assertions.assertEquals(UserRole.ROLE_MD, updatedUser.getRoles().getFirst().getName(), "수정된 유저의 역할이 ROLE_MD여야 합니다.")
         );
     }
 
@@ -119,7 +120,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User user = new User();
         user.setEmail("test1234@test.com");
         user.setPassword("test1234!");
-        user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+        user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
         User savedUser = userRepository.save(user);
         // 저장된 유저 삭제
         userRepository.deleteById(savedUser.getId());
@@ -137,7 +138,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
             User user = new User();
             user.setEmail("test" + i + "@test.com");
             user.setPassword("test" + i + "!");
-            user.setRoles(List.of(roleRepository.findByName("ROLE_USER").orElseThrow()));
+            user.setRoles(List.of(roleRepository.findByName(UserRole.ROLE_USER).orElseThrow()));
             userRepository.save(user);
         }
 

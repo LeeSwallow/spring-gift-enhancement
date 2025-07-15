@@ -45,7 +45,6 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
-
     }
 
     @Override
@@ -57,8 +56,9 @@ public class UserServiceImpl implements UserService {
         User existingUser = getById(user.getId());
         // 비밀번호 업데이트
         if (user.getPassword() != null) {
-            existingUser.setPassword(user.getPassword());
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
+
         // 이메일 업데이트
         if (user.getEmail() != null) {
             if (userRepository.existsByEmail(user.getEmail())) {
@@ -66,11 +66,9 @@ public class UserServiceImpl implements UserService {
             }
             existingUser.setEmail(user.getEmail());
         }
+
         // 역할 업데이트
         if (user.getRoles() != null) {
-            if (user.getRoles().isEmpty()) {
-                throw new IllegalArgumentException("사용자의 역할은 비어있을 수 없습니다.");
-            }
             existingUser.setRoles(user.getRoles());
         }
         return userRepository.save(existingUser);

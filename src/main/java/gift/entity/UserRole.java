@@ -29,10 +29,6 @@ public enum UserRole {
         return roleName;
     }
 
-    public Role toRole() {
-        return new Role(roleName);
-    }
-
     public int getPriority() {
         return priority;
     }

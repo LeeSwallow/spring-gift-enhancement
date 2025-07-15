@@ -2,9 +2,9 @@ package gift.dto.user;
 
 import gift.common.validation.annotation.ValidRoleList;
 import gift.common.validation.group.AuthenticationGroups;
-import gift.entity.Role;
 import gift.entity.User;
 import gift.common.validation.annotation.ValidPassword;
+import gift.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Null;
 
@@ -24,16 +24,15 @@ public record UserUpdateRequest(
         List<String> roles
 ) {
         public User toEntity() {
-                List<Role> mappedRoles = null;
-                if (roles != null) {
-                        mappedRoles = roles.stream()
-                                .map(Role::new)
-                                .collect(Collectors.toList());
-                }
                 var user = new User();
                 user.setEmail(email);
                 user.setPassword(password);
-                user.setRoles(mappedRoles);
+                if (roles != null) {
+                        user.setRoles(roles.stream()
+                                .map(UserRole::valueOf)
+                                .collect(Collectors.toSet()
+                        ));
+                }
                 return user;
         }
 }

@@ -1,9 +1,6 @@
 package gift.UnitTest.repository;
 
-import gift.entity.Product;
-import gift.entity.Role;
-import gift.entity.User;
-import gift.entity.WishedProduct;
+import gift.entity.*;
 import gift.repository.product.ProductRepository;
 import gift.repository.role.RoleRepository;
 import gift.repository.user.UserRepository;
@@ -35,16 +32,16 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
     @BeforeEach
     public void setUp() {
         roleRepository.saveAll(List.of(
-                new Role("ROLE_USER"),
-                new Role("ROLE_MD"),
-                new Role("ROLE_ADMIN")
+                new Role(UserRole.ROLE_USER),
+                new Role(UserRole.ROLE_MD),
+                new Role(UserRole.ROLE_ADMIN)
         ));
 
         if (this.testUser == null) {
             User user = new User();
             user.setEmail("testuser@test.com");
             user.setPassword("testuser123!");
-            var roles = new ArrayList<>(List.of((roleRepository.findByName("ROLE_USER").orElseThrow())));
+            var roles = new ArrayList<>(List.of((roleRepository.findByName(UserRole.ROLE_USER).orElseThrow())));
             user.setRoles(roles);
             this.testUser = userRepository.save(user);
         }

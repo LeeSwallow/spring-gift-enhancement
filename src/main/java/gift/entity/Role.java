@@ -1,34 +1,25 @@
 package gift.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "roles")
 public class Role {
     @Id
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private UserRole name;
 
     public Role() {
     }
 
-    public Role(String name) {
-        this.name = name;
+    public Role(UserRole userRole) {
+        this.name = userRole;
     }
 
-    public void setName(String name) {
+    public void setName(UserRole name) {
         this.name = name;
     }
-    public String getName() {
+    public UserRole getName() {
         return name;
-    }
-
-    UserRole toUserRole() {
-        return UserRole.valueOf(name);
-    }
-
-    static Role fromUserRole(UserRole userRole) {
-        return new Role(userRole.name());
     }
 }
