@@ -120,7 +120,6 @@ public class WishedProductServiceImpl implements WishedProductService {
     @Transactional
     public Optional<WishedProduct> decreaseQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
         var wishedProduct = findBy(userId, wishedProductId);
-        validateProductId(wishedProductId);
         if (wishedProduct.getQuantity() <= quantity) {
             wishedProductRepository.deleteById(wishedProductId);
             return Optional.empty();

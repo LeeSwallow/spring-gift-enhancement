@@ -1,7 +1,5 @@
 package gift.dto.user;
 
-import gift.entity.User;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -13,16 +11,4 @@ public record UserAdminResponse(
     Instant createdAt,
     Instant updatedAt
 ) {
-    public static UserAdminResponse from(User user) {
-        return new UserAdminResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getRoles().stream()
-                        .map(role -> role.getName().toString())
-                        .toList(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
-    }
 }

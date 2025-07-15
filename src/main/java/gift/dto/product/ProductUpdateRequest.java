@@ -1,6 +1,5 @@
 package gift.dto.product;
 
-import gift.entity.Product;
 import gift.common.validation.annotation.KakaoNotContained;
 import gift.common.validation.annotation.ValidProductName;
 import gift.common.validation.group.AuthenticationGroups;
@@ -21,9 +20,5 @@ public record ProductUpdateRequest (
         this.name = name;
         this.price = price;
         this.imageUrl = imageUrl;
-    }
-
-    public Product toEntity(Long productId) {
-        return new Product(productId, name, price, imageUrl, null);
     }
 }

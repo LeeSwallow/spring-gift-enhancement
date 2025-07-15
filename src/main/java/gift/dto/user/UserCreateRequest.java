@@ -1,14 +1,11 @@
 package gift.dto.user;
 
 import gift.common.validation.annotation.ValidRoleList;
-import gift.entity.User;
 import gift.common.validation.annotation.ValidPassword;
-import gift.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public record UserCreateRequest(
         @NotNull(message = "이메일은 필수입니다.")
@@ -24,16 +21,5 @@ public record UserCreateRequest(
                 if (roles == null || roles.isEmpty()) {
                         roles = List.of("ROLE_USER");
                 }
-        }
-
-        public User toEntity() {
-                var mappedRoles = roles.stream()
-                        .map(UserRole::valueOf)
-                        .collect(Collectors.toSet());
-                var user = new User();
-                user.setEmail(email);
-                user.setPassword(password);
-                user.setRoles(mappedRoles);
-                return user;
         }
 }

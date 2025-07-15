@@ -2,6 +2,7 @@ package gift.controller.api;
 
 
 import gift.common.aop.annotation.PreAuthorize;
+import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.dto.user.UserCreateRequest;
 import gift.dto.user.UserAdminResponse;
@@ -38,7 +39,7 @@ public class UserController {
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
     ) {
         var pageResponse =  CustomPage.convert(
-            userService.findAllBy(page, size), UserAdminResponse::from
+            userService.findAllBy(page, size), EntityDtoMapper::toAdminDto
         );
         return new ResponseEntity<>(pageResponse, HttpStatus.OK);
     }
@@ -50,7 +51,7 @@ public class UserController {
             @PathVariable Long id
     ) {
         var user = userService.findById(id);
-        return new ResponseEntity<>(UserAdminResponse.from(user), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toAdminDto(user), HttpStatus.OK);
     }
 
     @GetMapping("/me")
@@ -59,7 +60,7 @@ public class UserController {
             @RequestAttribute("auth")CustomAuth auth
         ) {
         var user = userService.findById(auth.userId());
-        return new ResponseEntity<>(UserDefaultResponse.from(user), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(user), HttpStatus.OK);
     }
 
     @PostMapping
@@ -70,9 +71,9 @@ public class UserController {
         log.info("사용자 생성 요청: {}", request);
 
 
-        var user = userService.create(request.toEntity());
+        var user = userService.create(EntityDtoMapper.toEntity(request));
         log.info("사용자 생성 완료: {}", user);
-        return new ResponseEntity<>(UserAdminResponse.from(user), HttpStatus.CREATED);
+        return new ResponseEntity<>(EntityDtoMapper.toAdminDto(user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -82,11 +83,11 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest request
     ) {
         log.info("사용자 업데이트 요청: {}", request);
-        User updateRequest = request.toEntity();
+        User updateRequest = EntityDtoMapper.toEntity(request);
         updateRequest.setId(id);
         var user = userService.update(updateRequest);
         log.info("사용자 업데이트 완료: {}", user);
-        return new ResponseEntity<>(UserAdminResponse.from(user), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toAdminDto(user), HttpStatus.OK);
     }
 
     @PutMapping("/me")
@@ -96,11 +97,11 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest request
     ) {
         log.info("현재 사용자 업데이트 요청: {}", request);
-        User updateRequest = request.toEntity();
+        User updateRequest = EntityDtoMapper.toEntity(request);
         updateRequest.setId(auth.userId());
         var user = userService.update(updateRequest);
         log.info("현재 사용자 업데이트 완료: {}", user);
-        return new ResponseEntity<>(UserDefaultResponse.from(user), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(user), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

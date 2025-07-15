@@ -1,6 +1,7 @@
 package gift.controller.view;
 
 import gift.common.aop.annotation.PreAuthorize;
+import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
 import gift.dto.product.ProductCreateRequest;
@@ -86,7 +87,7 @@ public class ProductViewController {
     ) {
         try {
             validateRequest(request);
-            Product product = request.toProduct();
+            Product product = EntityDtoMapper.toEntity(request);
             Product createdProduct = productService.create(product, auth.role(), auth.userId());
             return "redirect:/admin/products/" + createdProduct.getId();
         } catch (Exception e) {
