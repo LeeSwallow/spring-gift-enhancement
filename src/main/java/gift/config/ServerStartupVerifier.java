@@ -16,24 +16,17 @@ public class ServerStartupVerifier {
     private final Integer jwtExpirationTime;
     private final ConfigurableApplicationContext context;
     private String passwordEncoderAlgorithm;
-    private final String adminEmail;
-    private final String adminPassword;
-
 
    public ServerStartupVerifier(
                 @Value("${gift.jwt.secret:#{null}}") String jwtToken,
                 @Value("${gift.jwt.expiration:#{null}}") Integer jwtExpirationTime,
                 @Value("${gift.password.encoder.algorithm:#{null}}") String passwordEncoderAlgorithm,
-                @Value("${gift.admin.email:#{null}}") String adminEmail,
-                @Value("${gift.admin.password:#{null}}") String adminPassword,
                 ConfigurableApplicationContext context
    ) {
         this.jwtToken = jwtToken;
         this.jwtExpirationTime = jwtExpirationTime;
         this.passwordEncoderAlgorithm = passwordEncoderAlgorithm;
         this.context = context;
-        this.adminEmail = adminEmail;
-        this.adminPassword = adminPassword;
    }
 
    @PostConstruct
@@ -41,7 +34,6 @@ public class ServerStartupVerifier {
         log.info("서버 시작 검증을 시작합니다.");
         JwtVerification();
         passwordEncoderVerification();
-        adminCredentialsVerification();
         log.info("서버 시작 검증을 통과했습니다.");
     }
 
@@ -87,18 +79,5 @@ public class ServerStartupVerifier {
             haltServerStartup();
         }
         log.info("비밀번호 인코딩 수행 검증을 통과했습니다.");
-    }
-
-    private void adminCredentialsVerification() {
-        log.info("관리자 계정 설정을 검증합니다.");
-        if (adminEmail == null || adminEmail.isEmpty()) {
-            log.error("관리자 이메일이 설정되지 않았습니다. application.properties 파일에서 gift.admin.email 값을 확인하세요.");
-            haltServerStartup();
-        }
-        if (adminPassword == null || adminPassword.isEmpty()) {
-            log.error("관리자 비밀번호가 설정되지 않았습니다. application.properties 파일에서 gift.admin.password 값을 확인하세요.");
-            haltServerStartup();
-        }
-        log.info("관리자 계정 설정 검증을 통과했습니다.");
     }
 }
