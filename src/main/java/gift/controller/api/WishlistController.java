@@ -36,7 +36,7 @@ public class WishlistController {
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        var pagedResponse = wishedProductService.getAll(auth.userId(), page, size);
+        var pagedResponse = wishedProductService.findAllBy(auth.userId(), page, size);
 
         return new ResponseEntity<>(
                 CustomPage.convert(pagedResponse, WishedProductResponse::from), HttpStatus.OK
@@ -49,7 +49,7 @@ public class WishlistController {
             @PathVariable Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        WishedProduct wishedProduct = wishedProductService.getById(auth.userId(), id);
+        WishedProduct wishedProduct = wishedProductService.findBy(auth.userId(), id);
         return new ResponseEntity<>(WishedProductResponse.from(wishedProduct), HttpStatus.OK);
     }
 
@@ -70,7 +70,7 @@ public class WishlistController {
             @Valid @RequestBody UpdateWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        var wishedProduct = wishedProductService.update(auth.userId(), id, request.quantity());
+        var wishedProduct = wishedProductService.updateQuantityBy(auth.userId(), id, request.quantity());
         if (wishedProduct.isEmpty()) {
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }
@@ -86,9 +86,9 @@ public class WishlistController {
     ) {
         Optional<WishedProduct> wishedProduct;
         if (request.increment()) {
-            wishedProduct = wishedProductService.increaseProductQuantity(auth.userId(), id, request.quantity());
+            wishedProduct = wishedProductService.increaseQuantityBy(auth.userId(), id, request.quantity());
         } else {
-            wishedProduct = wishedProductService.decreaseProductQuantity(auth.userId(), id, request.quantity());
+            wishedProduct = wishedProductService.decreaseQuantityBy(auth.userId(), id, request.quantity());
         }
         if (wishedProduct.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -102,7 +102,7 @@ public class WishlistController {
             @PathVariable Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        wishedProductService.delete(auth.userId(), id);
+        wishedProductService.deleteBy(auth.userId(), id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

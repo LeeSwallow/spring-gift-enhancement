@@ -26,13 +26,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public CustomPage<User> getBy(int page, int size) {
+    public CustomPage<User> findAllBy(int page, int size) {
         var pagedUsers = userRepository.findAllBy(PageRequest.of(page, size));
         return CustomPage.from(pagedUsers);
     }
 
     @Override
-    public User getById(Long userId) {
+    public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 사용자를 찾을 수 없습니다. : " + userId));
     }
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
         if (user == null || user.getId() == null) {
             throw new IllegalArgumentException("업데이트할 사용자 정보가 유효하지 않습니다.");
         }
-        User existingUser = getById(user.getId());
+        User existingUser = findById(user.getId());
         // 비밀번호 업데이트
         if (user.getPassword() != null) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteById(Long userId) {
-        getById(userId); // user가 존재하는지 확인
+        findById(userId); // user가 존재하는지 확인
         userRepository.deleteById(userId);
     }
 }

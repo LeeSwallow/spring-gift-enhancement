@@ -44,7 +44,7 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public CustomPage<WishedProduct> getAll(Long userId, int page, int size) {
+    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
         validateUserId(userId);
         var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
         var customPage = CustomPage.from(pagedProducts);
@@ -57,7 +57,7 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public WishedProduct getById(Long userId, Long wishedProductId) {
+    public WishedProduct findBy(Long userId, Long wishedProductId) {
         validateUserId(userId);
         var wishedProduct = wishedProductRepository.findById(wishedProductId)
                 .orElseThrow(() -> new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId));
@@ -83,8 +83,8 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public void delete(Long userId, Long wishedProductId) {
-        getById(userId, wishedProductId); // 검증을 위해 호출
+    public void deleteBy(Long userId, Long wishedProductId) {
+        findBy(userId, wishedProductId); // 검증을 위해 호출
         wishedProductRepository.deleteById(wishedProductId);
     }
 
@@ -97,8 +97,8 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public Optional<WishedProduct> update(Long userId, Long wishedProductId, Integer quantity) {
-        var existingProduct = getById(userId, wishedProductId);
+    public Optional<WishedProduct> updateQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var existingProduct = findBy(userId, wishedProductId);
 
         if (quantity == null || quantity <= 0) {
             wishedProductRepository.deleteById(wishedProductId);
@@ -110,16 +110,16 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public Optional<WishedProduct> increaseProductQuantity(Long userId, Long wishedProductId, Integer quantity) {
-        var existingProduct =  getById(userId, wishedProductId);
+    public Optional<WishedProduct> increaseQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var existingProduct =  findBy(userId, wishedProductId);
         existingProduct.setQuantity(existingProduct.getQuantity() + quantity);
         return Optional.of(wishedProductRepository.save(existingProduct));
     }
 
     @Override
     @Transactional
-    public Optional<WishedProduct> decreaseProductQuantity(Long userId, Long wishedProductId, Integer quantity) {
-        var wishedProduct = getById(userId, wishedProductId);
+    public Optional<WishedProduct> decreaseQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var wishedProduct = findBy(userId, wishedProductId);
         validateProductId(wishedProductId);
         if (wishedProduct.getQuantity() <= quantity) {
             wishedProductRepository.deleteById(wishedProductId);

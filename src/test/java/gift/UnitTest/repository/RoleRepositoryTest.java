@@ -21,9 +21,9 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
     public void roleRepositoryTest() {
         UserRole userRole = UserRole.ROLE_USER;
         Role role = roleRepository.save(new Role(userRole));
-        assertEquals(userRole, role.getName(), "저장된 역할의 이름이 일치해야 합니다.");
+        assertEquals(userRole, role.getName());
 
         Role foundRole = roleRepository.findByName(userRole).orElse(null);
-        Assertions.assertNotNull(foundRole, "저장된 역할을 조회해야 합니다.");
+        Assertions.assertNotNull(foundRole);
     }
 }

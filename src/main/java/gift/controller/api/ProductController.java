@@ -35,7 +35,7 @@ public class ProductController {
             @RequestParam(value = "size", defaultValue = "5")
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
             ) {
-        var productPage = CustomPage.convert(productService.getBy(page, size), ProductDefaultResponse::from);
+        var productPage = CustomPage.convert(productService.findAllBy(page, size), ProductDefaultResponse::from);
         return new ResponseEntity<>(productPage, HttpStatus.OK);
     }
 
@@ -43,7 +43,7 @@ public class ProductController {
     public ResponseEntity<ProductDefaultResponse> getProductById(
             @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id
     ) {
-        Product product = productService.getById(id);
+        Product product = productService.findById(id);
         return new ResponseEntity<>(ProductDefaultResponse.from(product), HttpStatus.OK);
     }
 

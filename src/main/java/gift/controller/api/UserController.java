@@ -38,7 +38,7 @@ public class UserController {
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
     ) {
         var pageResponse =  CustomPage.convert(
-            userService.getBy(page, size), UserAdminResponse::from
+            userService.findAllBy(page, size), UserAdminResponse::from
         );
         return new ResponseEntity<>(pageResponse, HttpStatus.OK);
     }
@@ -49,7 +49,7 @@ public class UserController {
             @NotNull(message = "사용자 ID는 필수입니다.")
             @PathVariable Long id
     ) {
-        var user = userService.getById(id);
+        var user = userService.findById(id);
         return new ResponseEntity<>(UserAdminResponse.from(user), HttpStatus.OK);
     }
 
@@ -58,7 +58,7 @@ public class UserController {
     public ResponseEntity<UserDefaultResponse> getCurrentUser(
             @RequestAttribute("auth")CustomAuth auth
         ) {
-        var user = userService.getById(auth.userId());
+        var user = userService.findById(auth.userId());
         return new ResponseEntity<>(UserDefaultResponse.from(user), HttpStatus.OK);
     }
 

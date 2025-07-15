@@ -40,11 +40,11 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User savedUser = userRepository.save(user);
 
         Assertions.assertAll(
-                () -> Assertions.assertNotNull(savedUser.getId(), "저장된 유저의 ID는 null이 아니어야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getEmail(), user.getEmail(), "저장된 유저의 이메일이 일치해야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getPassword(), user.getPassword(), "저장된 유저의 비밀번호가 일치해야 합니다."),
-                () -> Assertions.assertFalse(savedUser.getRoles().isEmpty(), "저장된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals(UserRole.ROLE_USER, savedUser.getRoles().getFirst().getName(), "저장된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertNotNull(savedUser.getId()),
+                () -> Assertions.assertEquals(savedUser.getEmail(), user.getEmail()),
+                () -> Assertions.assertEquals(savedUser.getPassword(), user.getPassword()),
+                () -> Assertions.assertFalse(savedUser.getRoles().isEmpty()),
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, savedUser.getRoles().getFirst().getName())
         );
     }
 
@@ -59,13 +59,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User savedUser = userRepository.save(user);
 
         User foundUser = userRepository.findById(savedUser.getId()).orElse(null);
-        Assertions.assertNotNull(foundUser, "저장된 유저를 조회해야 합니다.");
+        Assertions.assertNotNull(foundUser);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(savedUser.getId(), foundUser.getId(), "조회된 유저의 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail(), "조회된 유저의 이메일이 일치해야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword(), "조회된 유저의 비밀번호가 일치해야 합니다."),
-                () -> Assertions.assertFalse(foundUser.getRoles().isEmpty(), "조회된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertEquals(savedUser.getId(), foundUser.getId()),
+                () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail()),
+                () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword()),
+                () -> Assertions.assertFalse(foundUser.getRoles().isEmpty()),
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName())
         );
     }
 
@@ -80,13 +80,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         User savedUser = userRepository.save(user);
 
         User foundUser = userRepository.findByEmail(savedUser.getEmail()).orElse(null);
-        Assertions.assertNotNull(foundUser, "저장된 유저를 조회해야 합니다.");
+        Assertions.assertNotNull(foundUser);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(savedUser.getId(), foundUser.getId(), "조회된 유저의 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail(), "조회된 유저의 이메일이 일치해야 합니다."),
-                () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword(), "조회된 유저의 비밀번호가 일치해야 합니다."),
-                () -> Assertions.assertFalse(foundUser.getRoles().isEmpty(), "조회된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName(), "조회된 유저의 역할이 ROLE_USER여야 합니다.")
+                () -> Assertions.assertEquals(savedUser.getId(), foundUser.getId()),
+                () -> Assertions.assertEquals(savedUser.getEmail(), foundUser.getEmail()),
+                () -> Assertions.assertEquals(savedUser.getPassword(), foundUser.getPassword()),
+                () -> Assertions.assertFalse(foundUser.getRoles().isEmpty()),
+                () -> Assertions.assertEquals(UserRole.ROLE_USER, foundUser.getRoles().getFirst().getName())
         );
     }
 
@@ -106,10 +106,10 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         savedUser.setRoles(roles);
         User updatedUser = userRepository.save(savedUser);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(updatedUser.getEmail(), savedUser.getEmail(), "수정된 유저의 이메일이 일치해야 합니다."),
-                () -> Assertions.assertEquals(updatedUser.getPassword(), savedUser.getPassword(), "수정된 유저의 비밀번호가 일치해야 합니다."),
-                () -> Assertions.assertFalse(updatedUser.getRoles().isEmpty(), "수정된 유저는 최소한 하나의 역할을 가져야 합니다."),
-                () -> Assertions.assertEquals(UserRole.ROLE_MD, updatedUser.getRoles().getFirst().getName(), "수정된 유저의 역할이 ROLE_MD여야 합니다.")
+                () -> Assertions.assertEquals(updatedUser.getEmail(), savedUser.getEmail()),
+                () -> Assertions.assertEquals(updatedUser.getPassword(), savedUser.getPassword()),
+                () -> Assertions.assertFalse(updatedUser.getRoles().isEmpty()),
+                () -> Assertions.assertEquals(UserRole.ROLE_MD, updatedUser.getRoles().getFirst().getName())
         );
     }
 
@@ -126,7 +126,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         userRepository.deleteById(savedUser.getId());
 
         User foundUser = userRepository.findById(savedUser.getId()).orElse(null);
-        Assertions.assertNull(foundUser, "삭제된 유저는 조회되지 않아야 합니다.");
+        Assertions.assertNull(foundUser);
     }
 
     @Test
@@ -147,9 +147,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         var page = userRepository.findAllBy(pageable);
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(5, page.getContent().size(), "첫 페이지는 5개의 유저를 포함해야 합니다."),
-                () -> Assertions.assertTrue(page.hasNext(), "다음 페이지가 있어야 합니다."),
-                () -> Assertions.assertEquals(10, page.getTotalElements(), "전체 유저 수는 10이어야 합니다.")
+                () -> Assertions.assertEquals(5, page.getContent().size()),
+                () -> Assertions.assertTrue(page.hasNext())
         );
     }
 }

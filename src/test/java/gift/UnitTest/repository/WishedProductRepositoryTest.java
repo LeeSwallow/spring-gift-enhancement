@@ -66,10 +66,10 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
         WishedProduct saved = wishedProductRepository.save(wishedProduct);
 
         Assertions.assertAll(
-                () -> Assertions.assertNotNull(saved.getId(), "저장된 위시리스트 상품의 ID는 null이 아니어야 합니다."),
-                () -> Assertions.assertEquals(this.testUser.getId(), saved.getUser().getId(), "저장된 위시리스트 상품의 사용자 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(this.testProducts.getFirst().getId(), saved.getProduct().getId(), "저장된 위시리스트 상품의 제품 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(2, saved.getQuantity(), "저장된 위시리스트 상품의 수량이 일치해야 합니다.")
+                () -> Assertions.assertNotNull(saved.getId()),
+                () -> Assertions.assertEquals(this.testUser.getId(), saved.getUser().getId()),
+                () -> Assertions.assertEquals(this.testProducts.getFirst().getId(), saved.getProduct().getId()),
+                () -> Assertions.assertEquals(2, saved.getQuantity())
         );
     }
 
@@ -84,12 +84,12 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
         WishedProduct saved = wishedProductRepository.save(wishedProduct);
 
         WishedProduct found = wishedProductRepository.findById(saved.getId()).orElse(null);
-        Assertions.assertNotNull(found, "저장된 위시리스트 상품을 조회해야 합니다.");
+        Assertions.assertNotNull(found);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(saved.getId(), found.getId(), "조회된 위시리스트 상품의 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(saved.getUser().getId(), found.getUser().getId(), "조회된 위시리스트 상품의 사용자 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(saved.getProduct().getId(), found.getProduct().getId(), "조회된 위시리스트 상품의 제품 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(saved.getQuantity(), found.getQuantity(), "조회된 위시리스트 상품의 수량이 일치해야 합니다.")
+                () -> Assertions.assertEquals(saved.getId(), found.getId()),
+                () -> Assertions.assertEquals(saved.getUser().getId(), found.getUser().getId()),
+                () -> Assertions.assertEquals(saved.getProduct().getId(), found.getProduct().getId()),
+                () -> Assertions.assertEquals(saved.getQuantity(), found.getQuantity())
         );
     }
 
@@ -107,10 +107,10 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
         WishedProduct updated = wishedProductRepository.save(saved);
 
         Assertions.assertAll(
-                () -> Assertions.assertNotNull(updated.getId(), "업데이트된 위시리스트 상품의 ID는 null이 아니어야 합니다."),
-                () -> Assertions.assertEquals(saved.getUser().getId(), updated.getUser().getId(), "업데이트된 위시리스트 상품의 사용자 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(saved.getProduct().getId(), updated.getProduct().getId(), "업데이트된 위시리스트 상품의 제품 ID가 일치해야 합니다."),
-                () -> Assertions.assertEquals(3, updated.getQuantity(), "업데이트된 위시리스트 상품의 수량이 일치해야 합니다.")
+                () -> Assertions.assertNotNull(updated.getId()),
+                () -> Assertions.assertEquals(saved.getUser().getId(), updated.getUser().getId()),
+                () -> Assertions.assertEquals(saved.getProduct().getId(), updated.getProduct().getId()),
+                () -> Assertions.assertEquals(3, updated.getQuantity())
         );
     }
 
@@ -125,7 +125,7 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
         WishedProduct saved = wishedProductRepository.save(wishedProduct);
 
         wishedProductRepository.delete(saved);
-        Assertions.assertFalse(wishedProductRepository.findById(saved.getId()).isPresent(), "삭제된 위시리스트 상품은 조회되지 않아야 합니다.");
+        Assertions.assertFalse(wishedProductRepository.findById(saved.getId()).isPresent());
     }
 
     @Test
@@ -140,7 +140,7 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
             wishedProductRepository.save(wishedProduct);
         });
         wishedProductRepository.deleteAll();
-        Assertions.assertTrue(wishedProductRepository.findAll().isEmpty(), "모든 위시리스트 상품이 삭제되어야 합니다.");
+        Assertions.assertTrue(wishedProductRepository.findAll().isEmpty());
     }
 
     @Test
@@ -161,18 +161,18 @@ public class WishedProductRepositoryTest extends AbstractRepositoryTest {
         }
         var pagedProducts = wishedProductRepository.findAllByUserId(this.testUser.getId(), PageRequest.of(0, 5)).getContent();
 
-        Assertions.assertFalse(pagedProducts.isEmpty(), "사용자별 위시리스트는 비어있지 않아야 합니다.");
+        Assertions.assertFalse(pagedProducts.isEmpty());
         Assertions.assertAll(
-                () -> Assertions.assertEquals(5, pagedProducts.size(), "페이지 크기는 5여야 합니다."),
-                () -> Assertions.assertEquals(this.testUser.getId(), pagedProducts.getFirst().getUser().getId(), "모든 위시리스트 상품은 동일한 사용자 ID를 가져야 합니다.")
+                () -> Assertions.assertEquals(5, pagedProducts.size()),
+                () -> Assertions.assertEquals(this.testUser.getId(), pagedProducts.getFirst().getUser().getId())
         );
 
         var stats = wishedProductRepository.calculateStatsByUserId(this.testUser.getId());
         long finalTotalPrice = totalPrice;
         long finalTotalQuantity = totalQuantity;
         Assertions.assertAll(
-                () -> Assertions.assertEquals(finalTotalPrice, stats.getTotalPrice(), "총 가격이 일치해야 합니다."),
-                () -> Assertions.assertEquals(finalTotalQuantity, stats.getTotalQuantity(), "총 수량이 일치해야 합니다.")
+                () -> Assertions.assertEquals(finalTotalPrice, stats.getTotalPrice()),
+                () -> Assertions.assertEquals(finalTotalQuantity, stats.getTotalQuantity())
         );
     }
 }

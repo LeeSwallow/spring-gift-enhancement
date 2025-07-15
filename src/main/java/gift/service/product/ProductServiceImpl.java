@@ -37,12 +37,12 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public CustomPage<Product> getBy(int page, int size) {
+    public CustomPage<Product> findAllBy(int page, int size) {
         return CustomPage.from(productRepository.findAllBy(PageRequest.of(page, size)));
     }
 
     @Override
-    public Product getById(Long productId) {
+    public Product findById(Long productId) {
         if (productId == null) {
             log.error("상품 ID가 null 입니다.");
             throw new IllegalArgumentException("상품 ID는 필수입니다.");
@@ -67,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product update(Product product, UserRole role, Long userId) {
-        Product updated = getById(product.getId());
+        Product updated = findById(product.getId());
         validateProduct(updated, role, userId);
         if (product.getName() != null) {
             updated.setName(product.getName());
@@ -87,7 +87,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteById(Long productId, UserRole role, Long userId) {
-        Product deleted = getById(productId);
+        Product deleted = findById(productId);
         validateProduct(deleted, role, userId);
         productRepository.deleteById(productId);
     }

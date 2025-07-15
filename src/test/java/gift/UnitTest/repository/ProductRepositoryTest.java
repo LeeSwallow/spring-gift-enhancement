@@ -2,6 +2,7 @@ package gift.UnitTest.repository;
 
 import gift.entity.Product;
 import gift.repository.product.ProductRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -21,11 +22,11 @@ public class ProductRepositoryTest extends AbstractRepositoryTest {
         Product product = new Product(null, "Test Product", 1000L, "http://example.com/image.jpg",1L);
         Product saved = productRepository.save(product);
         assertAll (
-                () -> assertNotNull(saved.getId(), "상품 ID는 null이 아니어야 합니다."),
-                () -> assertEquals(product.getName(), saved.getName(), "상품 이름이 일치해야 합니다."),
-                () -> assertEquals(product.getPrice(), saved.getPrice(), "상품 가격이 일치해야 합니다."),
-                () -> assertEquals(product.getImageUrl(), saved.getImageUrl(), "상품 이미지 URL이 일치해야 합니다."),
-                () -> assertEquals(product.getOwnerId(), saved.getOwnerId(), "상품 소유자 ID가 일치해야 합니다.")
+                () -> assertNotNull(saved.getId()),
+                () -> assertEquals(product.getName(), saved.getName()),
+                () -> assertEquals(product.getPrice(), saved.getPrice()),
+                () -> assertEquals(product.getImageUrl(), saved.getImageUrl()),
+                () -> assertEquals(product.getOwnerId(), saved.getOwnerId())
         );
     }
 
@@ -37,13 +38,13 @@ public class ProductRepositoryTest extends AbstractRepositoryTest {
         Product saved = productRepository.save(product);
 
         Product found = productRepository.findById(saved.getId()).orElse(null);
+        Assertions.assertNotNull(found);
         assertAll(
-                () -> assertNotNull(found, "저장된 상품을 조회해야 합니다."),
-                () -> assertEquals(saved.getId(), found.getId(), "조회된 상품 ID가 일치해야 합니다."),
-                () -> assertEquals(saved.getName(), found.getName(), "조회된 상품 이름이 일치해야 합니다."),
-                () -> assertEquals(saved.getPrice(), found.getPrice(), "조회된 상품 가격이 일치해야 합니다."),
-                () -> assertEquals(saved.getImageUrl(), found.getImageUrl(), "조회된 상품 이미지 URL이 일치해야 합니다."),
-                () -> assertEquals(saved.getOwnerId(), found.getOwnerId(), "조회된 상품 소유자 ID가 일치해야 합니다.")
+                () -> assertEquals(saved.getId(), found.getId()),
+                () -> assertEquals(saved.getName(), found.getName()),
+                () -> assertEquals(saved.getPrice(), found.getPrice()),
+                () -> assertEquals(saved.getImageUrl(), found.getImageUrl()),
+                () -> assertEquals(saved.getOwnerId(), found.getOwnerId())
         );
     }
 
@@ -60,11 +61,11 @@ public class ProductRepositoryTest extends AbstractRepositoryTest {
         Product updated = productRepository.save(saved);
 
         assertAll(
-                () -> assertNotNull(updated.getId(), "업데이트된 상품 ID는 null이 아니어야 합니다."),
-                () -> assertEquals("Updated Product", updated.getName(), "업데이트된 상품 이름이 일치해야 합니다."),
-                () -> assertEquals(2000L, updated.getPrice(), "업데이트된 상품 가격이 일치해야 합니다."),
-                () -> assertEquals("http://example.com/updated_image.jpg", updated.getImageUrl(), "업데이트된 상품 이미지 URL이 일치해야 합니다."),
-                () -> assertEquals(saved.getOwnerId(), updated.getOwnerId(), "업데이트된 상품 소유자 ID가 일치해야 합니다.")
+                () -> assertNotNull(updated.getId()),
+                () -> assertEquals("Updated Product", updated.getName()),
+                () -> assertEquals(2000L, updated.getPrice()),
+                () -> assertEquals("http://example.com/updated_image.jpg", updated.getImageUrl()),
+                () -> assertEquals(saved.getOwnerId(), updated.getOwnerId())
         );
     }
 
