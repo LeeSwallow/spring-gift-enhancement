@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidRoleList {
-    String message() default "역할은 ROLE_USER, ROLE_MD, ROLE_ADMIN 중 하나여야 합니다.";
+    String message() default "유효하지 않은 역할 목록입니다.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
