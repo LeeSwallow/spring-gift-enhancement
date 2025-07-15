@@ -33,12 +33,13 @@ CREATE TABLE IF NOT EXISTS  products (
 );
 
 CREATE TABLE IF NOT EXISTS  wished_products (
+    id BIGINT AUTO_INCREMENT,
      user_id BIGINT NOT NULL,
      product_id BIGINT NOT NULL,
      quantity INT NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-     PRIMARY KEY (user_id, product_id),
+    PRIMARY KEY (id),
      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
