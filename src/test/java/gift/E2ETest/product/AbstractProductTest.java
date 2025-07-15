@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public abstract class AbstractProductTest extends AbstractControllerTest {
     protected Map<UserRole, UserAdminResponse> testUsers;
@@ -35,6 +36,18 @@ public abstract class AbstractProductTest extends AbstractControllerTest {
                 .as(UserAdminResponse.class);
     }
 
+    private ProductDefaultResponse createProduct(ProductCreateRequest request) {
+        return RestAssured.given()
+                .header(AUTH_HEADER_KEY, this.adminToken)
+                .contentType("application/json")
+                .body(request)
+                .post(getRequestUrl())
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(ProductDefaultResponse.class);
+    }
+
     private String getToken(UserCreateRequest request) {
         TokenResponse response =  RestAssured.given()
                 .contentType("application/json")
@@ -47,19 +60,18 @@ public abstract class AbstractProductTest extends AbstractControllerTest {
         return "Bearer " + response.token();
     }
 
+
     @BeforeEach
     public void setUp(RestDocumentationContextProvider provider) {
         super.setUp(provider);
-        ProductCreateRequest request =
-                new ProductCreateRequest("테스트 제품", 1000L, "이미지 URL");
 
         Map<UserRole, UserCreateRequest> userRequests = Map.of(
                 UserRole.ROLE_ADMIN,
-                new UserCreateRequest("prodUser1@example.com", "password123!", "ROLE_ADMIN"),
+                new UserCreateRequest("prodUser1@example.com", "password123!", List.of("ROLE_ADMIN")),
                 UserRole.ROLE_MD,
-                new UserCreateRequest("prodUser2@example.com", "password123!", "ROLE_MD"),
+                new UserCreateRequest("prodUser2@example.com", "password123!", List.of("ROLE_MD")),
                 UserRole.ROLE_USER,
-                new UserCreateRequest("prodUser3@example.com", "password123!", "ROLE_USER")
+                new UserCreateRequest("prodUser3@example.com", "password123!", List.of("ROLE_USER"))
         );
         this.testUsers = new HashMap<>();
         this.testUserTokens = new HashMap<>();
@@ -73,18 +85,14 @@ public abstract class AbstractProductTest extends AbstractControllerTest {
             this.testUserTokens.put(role, token);
         }
 
-
         this.testProductIds = new ArrayList<>();
-        ProductDefaultResponse response = RestAssured.given()
-                .header(AUTH_HEADER_KEY, this.adminToken)
-                .contentType("application/json")
-                .body(request)
-                .post(getRequestUrl())
-                .then()
-                .statusCode(201)
-                .extract()
-                .as(ProductDefaultResponse.class);
-        this.testProductIds.add(response);
+         Stream.of(
+            new ProductCreateRequest("테스트 제품1", 1000L, "www.example.com/image1.jpg"),
+            new ProductCreateRequest("테스트 제품2", 2000L, "www.example.com/image2.jpg"),
+            new ProductCreateRequest("테스트 제품3", 3000L, "www.example.com/image3.jpg")
+        ).forEach(request ->
+            this.testProductIds.add(createProduct(request)));
+
     }
 
     @AfterEach

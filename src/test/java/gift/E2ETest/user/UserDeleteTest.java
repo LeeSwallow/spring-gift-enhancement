@@ -7,6 +7,8 @@ import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -69,7 +71,7 @@ public class UserDeleteTest extends AbstractUserTest {
         UserAdminResponse userResponse = RestAssured.given()
                 .contentType("application/json")
                 .header(AUTH_HEADER_KEY, this.adminToken) // 일반 사용자 권한으로 요청
-                .body(new UserCreateRequest("delete@test.com", "password123!", "ROLE_USER"))
+                .body(new UserCreateRequest("delete@test.com", "password123!", List.of("ROLE_USER")))
                 .when()
                 .get(getRequestUrl() + "/me") // 자신의 정보 조회
                 .then()

@@ -22,7 +22,8 @@ public class WishlistCreateTest extends AbstractWishlistTest {
     };
 
     static final FieldDescriptor[] WISHLIST_CREATE_RESPONSE = {
-            fieldWithPath("id").description("위시리스트에 추가된 제품 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("id").description("위시리스트 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("productId").description("추가된 제품 ID").type(JsonFieldType.NUMBER),
             fieldWithPath("name").description("제품 이름").type(JsonFieldType.STRING),
             fieldWithPath("price").description("제품 가격").type(JsonFieldType.NUMBER),
             fieldWithPath("imageUrl").description("제품 이미지 URL").type(JsonFieldType.STRING),
@@ -52,7 +53,8 @@ public class WishlistCreateTest extends AbstractWishlistTest {
                 .then()
                 .statusCode(201)
                 .body("id", notNullValue())
-                .body("id", equalTo(product.id().intValue()))
+                .body("productId", notNullValue())
+                .body("productId", equalTo(product.id().intValue()))
                 .body("name", notNullValue())
                 .body("name", equalTo(product.name()))
                 .body("price", notNullValue())
@@ -87,15 +89,14 @@ public class WishlistCreateTest extends AbstractWishlistTest {
                 new CreateWishedProductRequest(null, 2) // 제품 ID 누락
                 , new CreateWishedProductRequest(1L, -1) // 수량이 음수인 경우
         );
-        requests.forEach(request -> {
+        requests.forEach(request ->
             RestAssured.given(this.spec)
                     .contentType("application/json")
                     .body(request)
                     .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
                     .post(getRequestUrl())
                     .then()
-                    .statusCode(400);
-        });
+                    .statusCode(400));
     }
 
     @Test

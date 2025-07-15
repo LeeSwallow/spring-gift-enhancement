@@ -1,6 +1,5 @@
 package gift.E2ETest.wishlist;
 
-import gift.dto.wishlist.CreateWishedProductRequest;
 import gift.dto.wishlist.PatchWishedProductRequest;
 import gift.dto.wishlist.UpdateWishedProductRequest;
 import io.restassured.RestAssured;
@@ -30,7 +29,8 @@ public class WishListUpdateTest extends AbstractWishlistTest {
     };
 
     static final FieldDescriptor[] PRODUCT_RESPONSE = {
-            fieldWithPath("id").description("제품 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("id").description("위시리스트 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("productId").description("위시리스트에 추가된 제품 ID").type(JsonFieldType.NUMBER),
             fieldWithPath("name").description("제품 이름").type(JsonFieldType.STRING),
             fieldWithPath("price").description("제품 가격").type(JsonFieldType.NUMBER),
             fieldWithPath("imageUrl").description("제품 이미지 URL").type(JsonFieldType.STRING),
@@ -40,24 +40,13 @@ public class WishListUpdateTest extends AbstractWishlistTest {
             fieldWithPath("updatedAt").description("제품 수정 시간").type(JsonFieldType.STRING)
     };
 
-    private void addProductToWishlist(Long productId) {
-        // 위시리스트에 제품을 추가하는 메서드
-        CreateWishedProductRequest request = new CreateWishedProductRequest(productId, null);
-        RestAssured.given()
-                .contentType("application/json")
-                .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .post(getRequestUrl())
-                .then()
-                .statusCode(201);
-    }
 
     @Test
     public void WishList_Update_Success() {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 수정하는 테스트
 
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         UpdateWishedProductRequest request = new UpdateWishedProductRequest(5);
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 수정 성공",
@@ -69,11 +58,13 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                 .contentType("application/json")
                 .body(request)
                 .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .put(getRequestUrl() + "/{id}", productId)
+                .put(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
-                .body("id", equalTo(productId.intValue()))
+                .body("id", equalTo(res.id().intValue()))
+                .body("productId", notNullValue())
+                .body("productId", equalTo(productId.intValue()))
                 .body("name", notNullValue())
                 .body("name", equalTo(this.testProducts.getFirst().name()))
                 .body("price", notNullValue())
@@ -89,21 +80,21 @@ public class WishListUpdateTest extends AbstractWishlistTest {
     public void WishList_Update_Failure_Validation() {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 수정하는 테스트
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
+
         List<UpdateWishedProductRequest> requests = List.of(
                 new UpdateWishedProductRequest(-1), // 음수 수량
                 new UpdateWishedProductRequest(null) // null 수량
         );
 
-        requests.forEach(request -> {
+        requests.forEach(request ->
                 RestAssured.given(this.spec)
                         .contentType("application/json")
                         .body(request)
                         .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                        .put(getRequestUrl() + "/{id}", productId)
+                        .put(getRequestUrl() + "/{id}", res.id())
                         .then()
-                        .statusCode(400);
-        });
+                        .statusCode(400));
     }
 
     @Test
@@ -111,12 +102,12 @@ public class WishListUpdateTest extends AbstractWishlistTest {
     public void WishList_Update_Failure_Unauthorized() {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 수정하는 테스트
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         UpdateWishedProductRequest request = new UpdateWishedProductRequest(5);
         RestAssured.given(this.spec)
                 .contentType("application/json")
                 .body(request)
-                .put(getRequestUrl() + "/{id}", productId)
+                .put(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(403);
     }
@@ -127,7 +118,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 증가시키는 테스트
 
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         PatchWishedProductRequest request = new PatchWishedProductRequest(null, null);
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 수정 성공 - 증가",
@@ -139,7 +130,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                 .contentType("application/json")
                 .body(request)
                 .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .patch(getRequestUrl() + "/{id}", productId)
+                .patch(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
@@ -160,7 +151,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
         // 위시리스트에 제품을 추가한 후(quantity = 1), 해당 제품의 수량을 감소시키는 테스트
 
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         PatchWishedProductRequest request = new PatchWishedProductRequest(null, false);
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 수정 성공 - 감소",
@@ -171,7 +162,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                 .contentType("application/json")
                 .body(request)
                 .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .patch(getRequestUrl() + "/{id}", productId)
+                .patch(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(204); // 수량이 0으로 감소되었으므로 204 No Content 반환
     }
@@ -181,32 +172,31 @@ public class WishListUpdateTest extends AbstractWishlistTest {
     public void WishList_Patch_Failure_Validation() {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 수정하는 테스트
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         List<PatchWishedProductRequest> requests = List.of(
                 new PatchWishedProductRequest(-1, null) // 음수 수량
         );
 
-        requests.forEach(request -> {
+        requests.forEach(request ->
             RestAssured.given(this.spec)
                     .contentType("application/json")
                     .body(request)
                     .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                    .patch(getRequestUrl() + "/{id}", productId)
+                    .patch(getRequestUrl() + "/{id}", res.id())
                     .then()
-                    .statusCode(400);
-        });
+                    .statusCode(400));
     }
     @Test
     @DisplayName("위시리스트 제품 수량 수정 실패 테스트: 권한이 없는 경우(403 Forbidden)")
     public void WishList_Patch_Failure_Unauthorized() {
         // 위시리스트에 제품을 추가한 후, 해당 제품의 수량을 수정하는 테스트
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
         PatchWishedProductRequest request = new PatchWishedProductRequest(null, null);
         RestAssured.given(this.spec)
                 .contentType("application/json")
                 .body(request)
-                .patch(getRequestUrl() + "/{id}", productId)
+                .patch(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(403);
     }

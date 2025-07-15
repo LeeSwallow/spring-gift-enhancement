@@ -1,6 +1,5 @@
 package gift.E2ETest.wishlist;
 
-import gift.dto.wishlist.CreateWishedProductRequest;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,18 +12,6 @@ import static org.springframework.restdocs.restassured.RestAssuredRestDocumentat
 
 public class WishListDeleteTest extends  AbstractWishlistTest {
 
-    private void addProductToWishlist(Long productId) {
-        // 위시리스트에 제품을 추가하는 메서드
-        CreateWishedProductRequest request = new CreateWishedProductRequest(productId, null);
-        RestAssured.given()
-                .contentType("application/json")
-                .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .post(getRequestUrl())
-                .then()
-                .statusCode(201);
-    }
-
     @Test
     @DisplayName("단건 위시리스트 삭제 성공 테스트")
     public void delete_Wishlist_Success() {
@@ -32,16 +19,16 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
         Long productId = this.testProducts.getFirst().id();
 
         // 먼저 위시리스트에 제품을 추가
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
 
         // 위시리스트에서 제품 삭제 요청
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 삭제 성공",
                         pathParameters(
-                                parameterWithName("productId").description("삭제할 제품 ID")
+                                parameterWithName("id").description("삭제할 위시리스트 ID")
                         )))
                 .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .delete(getRequestUrl() + "/{productId}", productId)
+                .delete(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(204);
     }
@@ -51,7 +38,7 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
     public void delete_All_Wishlist_Success() {
         // 위시리스트 전체 삭제 성공 테스트
         this.testProducts.forEach(
-                product -> addProductToWishlist(product.id())
+                product -> addProductToWishlist(product.id(), 1)
         );
 
         RestAssured.given(this.spec)
@@ -80,7 +67,7 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 삭제 실패 - 제품 없음",
                         pathParameters(
-                                parameterWithName("productId").description("삭제할 제품 ID")
+                                parameterWithName("productId").description("삭제할 위시리스트 ID")
                         )))
                 .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
                 .delete(getRequestUrl() + "/{productId}", nonExistentProductId)
@@ -92,14 +79,14 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
     public void delete_Wishlist_Failure_Unauthorized() {
         // 위시리스트 삭제 요청 시 권한이 없는 경우
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 1);
 
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 제품 삭제 실패 - 권한 없음",
                         pathParameters(
-                                parameterWithName("productId").description("삭제할 제품 ID")
+                                parameterWithName("productId").description("삭제할 위시리스트 ID")
                         )))
-                .delete(getRequestUrl() + "/{productId}", productId)
+                .delete(getRequestUrl() + "/{productId}", res.id())
                 .then()
                 .statusCode(403);
     }

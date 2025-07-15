@@ -1,6 +1,5 @@
 package gift.E2ETest.wishlist;
 
-import gift.dto.wishlist.CreateWishedProductRequest;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,8 @@ import static org.springframework.restdocs.restassured.RestAssuredRestDocumentat
 public class WishListReadTest extends AbstractWishlistTest {
 
     static final FieldDescriptor[] PRODUCT_READ_RESPONSE = {
-            fieldWithPath("id").description("제품 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("id").description("위시리스트 ID").type(JsonFieldType.NUMBER),
+            fieldWithPath("productId").description("위시리스트에 추가된 제품 ID").type(JsonFieldType.NUMBER),
             fieldWithPath("name").description("제품 이름").type(JsonFieldType.STRING),
             fieldWithPath("price").description("제품 가격").type(JsonFieldType.NUMBER),
             fieldWithPath("imageUrl").description("제품 이미지 URL").type(JsonFieldType.STRING),
@@ -45,18 +45,6 @@ public class WishListReadTest extends AbstractWishlistTest {
             fieldWithPath("contents[].createdAt").description("제품 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
     };
-
-    private void addProductToWishlist(Long productId) {
-        // 위시리스트에 제품을 추가하는 메서드
-        CreateWishedProductRequest request = new CreateWishedProductRequest(productId, null);
-        RestAssured.given()
-                .contentType("application/json")
-                .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
-                .post(getRequestUrl())
-                .then()
-                .statusCode(201);
-    }
 
     @Test
     @DisplayName("위시리스트 전체 조회 성공 테스트")
@@ -138,27 +126,29 @@ public class WishListReadTest extends AbstractWishlistTest {
     public void find_Wishlist_Product_Success() {
         // 위시리스트 단건 제품 조회 성공 테스트
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 3);
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 단건 제품 조회 성공",
                         responseFields(PRODUCT_READ_RESPONSE)))
                 .header(AUTH_HEADER_KEY, this.adminToken)
                 .when()
-                .get(getRequestUrl() + "/" + productId)
+                .get(getRequestUrl() + "/" + res.id())
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
+                .body("productId", notNullValue())
                 .body("name", notNullValue())
                 .body("price", notNullValue())
                 .body("imageUrl", notNullValue())
                 .body("quantity", notNullValue())
                 .body("subtotal", notNullValue())
-                .body("id", equalTo(productId.intValue()))
+                .body("id", equalTo(res.id().intValue()))
+                .body("productId", equalTo(productId.intValue()))
                 .body("name", equalTo(this.testProducts.getFirst().name()))
                 .body("price", equalTo(this.testProducts.getFirst().price().intValue()))
                 .body("imageUrl", equalTo(this.testProducts.getFirst().imageUrl()))
-                .body("quantity", equalTo(1))
-                .body("subtotal", equalTo(this.testProducts.getFirst().price().intValue()));
+                .body("quantity", equalTo(3))
+                .body("subtotal", equalTo(this.testProducts.getFirst().price().intValue() * 3));
     }
 
     @Test
@@ -180,12 +170,12 @@ public class WishListReadTest extends AbstractWishlistTest {
     public void find_Wishlist_Product_Failure_Unauthorized() {
         // 위시리스트 단건 제품 조회 실패 테스트 : 권한이 없는 경우(403 Forbidden)
         Long productId = this.testProducts.getFirst().id();
-        addProductToWishlist(productId);
+        var res = addProductToWishlist(productId, 3);
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 단건 제품 조회 실패 - 권한 없음",
                         responseFields(ERROR_MESSAGE_FIELDS)))
                 .when()
-                .get(getRequestUrl() + "/" + productId)
+                .get(getRequestUrl() + "/" + res.id())
                 .then()
                 .statusCode(403);
     }

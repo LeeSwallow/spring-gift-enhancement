@@ -52,11 +52,11 @@ public abstract class AbstractUserTest extends AbstractControllerTest {
         super.setUp(provider);
         Map<UserRole, UserCreateRequest> userRequests = Map.of(
                 UserRole.ROLE_ADMIN,
-                new UserCreateRequest("user1@test.com", "password123!", "ROLE_ADMIN"),
+                new UserCreateRequest("user1@test.com", "password123!", List.of("ROLE_ADMIN")),
                 UserRole.ROLE_MD,
-                new UserCreateRequest("user2@test.com", "password123!", "ROLE_MD"),
+                new UserCreateRequest("user2@test.com", "password123!", List.of("ROLE_MD")),
                 UserRole.ROLE_USER,
-                new UserCreateRequest("user3@test.com", "password123!", "ROLE_USER")
+                new UserCreateRequest("user3@test.com", "password123!", List.of("ROLE_USER"))
         );
 
         this.testUsers = new HashMap<>();

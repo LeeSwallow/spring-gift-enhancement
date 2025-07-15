@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -20,7 +22,7 @@ public class UserCreateTest extends AbstractUserTest {
     private final FieldDescriptor[] USER_CREATE_REQUEST = {
         fieldWithPath("email").description("사용자 이메일").type(JsonFieldType.STRING),
         fieldWithPath("password").description("사용자 비밀번호").type(JsonFieldType.STRING),
-        fieldWithPath("role").description("사용자 역할 (기본값: ROLE_USER)").type(JsonFieldType.STRING).optional()
+        fieldWithPath("roles[]").description("사용자 역할 목록 (기본값: [ROLE_USER])").type(JsonFieldType.ARRAY).optional(),
     };
 
     private final FieldDescriptor[] ADMIN_RESPONSE = {
@@ -37,7 +39,7 @@ public class UserCreateTest extends AbstractUserTest {
     @DisplayName("사용자 생성 성공 테스트: 관리자 권한으로 요청")
     public void Admin_Create_Success() {
         String url = getRequestUrl();
-        UserCreateRequest request = new UserCreateRequest("testuser1@example.com", "password123!", "ROLE_USER");
+        UserCreateRequest request = new UserCreateRequest("testuser1@example.com", "password123!", List.of("ROLE_USER"));
         UserAdminResponse response = RestAssured.given(this.spec)
                 .filter(document("관리자 권한으로 사용자 생성 성공",
                         requestFields(USER_CREATE_REQUEST),
@@ -64,7 +66,7 @@ public class UserCreateTest extends AbstractUserTest {
     @DisplayName("사용자 생성 실패 테스트: 관리자 권한 없이 요청(403 Forbidden)")
     public void Admin_Create_Failure_NoAuth() {
         String url = getRequestUrl();
-        UserCreateRequest request = new UserCreateRequest("testuser1@example.com", "password123!", "ROLE_USER");
+        UserCreateRequest request = new UserCreateRequest("testuser1@example.com", "password123!", List.of("ROLE_USER"));
         RestAssured.given(this.spec)
                 .filter(document("관리자 권한 없이 사용자 생성 실패",
                         requestFields(USER_CREATE_REQUEST),

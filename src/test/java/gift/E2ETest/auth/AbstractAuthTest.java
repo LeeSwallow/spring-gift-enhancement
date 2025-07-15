@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractAuthTest extends AbstractControllerTest {
@@ -35,7 +36,7 @@ public abstract class AbstractAuthTest extends AbstractControllerTest {
         UserCreateRequest userRequest = new UserCreateRequest(
                 "user1@example.com",
                 "password123!",
-                "ROLE_USER"
+                List.of("ROLE_USER")
         );
         UserAdminResponse userResponse = getAdminResponse(userRequest);
         this.testUsers.put(userRequest, userResponse);
@@ -43,7 +44,7 @@ public abstract class AbstractAuthTest extends AbstractControllerTest {
         UserCreateRequest adminRequest = new UserCreateRequest(
                 "user2@example.com",
                 "password123!",
-                "ROLE_ADMIN"
+                List.of("ROLE_ADMIN")
         );
         UserAdminResponse adminResponse = getAdminResponse(adminRequest);
         this.testUsers.put(adminRequest, adminResponse);

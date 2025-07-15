@@ -3,6 +3,8 @@ package gift.E2ETest.wishlist;
 import gift.E2ETest.AbstractControllerTest;
 import gift.dto.product.ProductCreateRequest;
 import gift.dto.product.ProductDefaultResponse;
+import gift.dto.wishlist.CreateWishedProductRequest;
+import gift.dto.wishlist.WishedProductResponse;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +28,20 @@ public abstract class AbstractWishlistTest extends AbstractControllerTest {
                 .as(ProductDefaultResponse.class);
     }
 
+    protected WishedProductResponse addProductToWishlist(Long productId, Integer quantity) {
+        // 위시리스트에 제품을 추가하는 메서드
+        CreateWishedProductRequest request = new CreateWishedProductRequest(productId, quantity);
+        return RestAssured.given()
+                .contentType("application/json")
+                .body(request)
+                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .post(getRequestUrl())
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(WishedProductResponse.class);
+    }
+
     @BeforeEach
     public void setUp(RestDocumentationContextProvider provider) {
         super.setUp(provider);
@@ -41,14 +57,19 @@ public abstract class AbstractWishlistTest extends AbstractControllerTest {
 
     @AfterEach
     public void tearDown() {
-        this.testProducts.forEach(product -> {
+        this.testProducts.forEach(product ->
             RestAssured.given()
                     .header(AUTH_HEADER_KEY, this.adminToken)
                     .delete(getBaseUrl() + "/api/products/" + product.id())
                     .then()
-                    .statusCode(204);
-        });
+                    .statusCode(204));
         this.testProducts.clear();
+
+        RestAssured.given()
+                .header(AUTH_HEADER_KEY, this.adminToken)
+                .delete(getRequestUrl())
+                .then()
+                .statusCode(204);
     }
 
     protected String getRequestUrl() {
