@@ -1,16 +1,19 @@
 package gift.E2ETest.user;
 
+import gift.common.util.PasswordEncoder;
 import gift.dto.user.UserAdminResponse;
 import gift.dto.user.UserUpdateRequest;
 import gift.entity.UserRole;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -40,9 +43,15 @@ public class UserUpdateTest extends AbstractUserTest {
             fieldWithPath("email").description("사용자 이메일").type(JsonFieldType.STRING)
     };
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Test
     @DisplayName("사용자 수정 성공 테스트 - 관리자 권한")
     void update_User_Admin_Success() {
+
+        String encodedPassword = this.passwordEncoder.encode("updated1234!");
+
         String url = getRequestUrl() + "/{id}";
         UserAdminResponse userResponse = this.testUsers.get(UserRole.ROLE_USER);
         UserUpdateRequest request = new UserUpdateRequest(
@@ -61,14 +70,21 @@ public class UserUpdateTest extends AbstractUserTest {
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
+                .body("id", equalTo(userResponse.id().intValue()))
                 .body("email", notNullValue())
+                .body("email", equalTo(request.email())) // 이메일은 요청한 값으로 확인
                 .body("password", notNullValue())
-                .body("roles", notNullValue());
+                .body("password", equalTo(encodedPassword)) // 비밀번호는 인코딩된 값으로 확인
+                .body("roles", notNullValue())
+                .body("roles", equalTo(List.of("ROLE_USER")));
     }
 
     @Test
     @DisplayName("사용자 수정 성공 테스트 - 관리자 권한, 특정 필드 누락")
     void update_user_Admin_Success_With_Partial_Request() {
+
+        String encodedPassword = this.passwordEncoder.encode("updated1234!");
+
         String url = getRequestUrl() + "/{id}";
         UserAdminResponse userResponse = this.testUsers.get(UserRole.ROLE_USER);
         UserUpdateRequest request = new UserUpdateRequest(null, "updated1234!", null);
@@ -86,9 +102,13 @@ public class UserUpdateTest extends AbstractUserTest {
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
+                .body("id", equalTo(userResponse.id().intValue()))
                 .body("email", notNullValue())
+                .body("email", equalTo(userResponse.email()))
                 .body("password", notNullValue())
-                .body("roles", notNullValue());
+                .body("password", equalTo(encodedPassword)) // 비밀번호는 인코딩된 값으로 확인
+                .body("roles", notNullValue())
+                .body("roles", equalTo(List.of("ROLE_USER")));
     }
 
     @Test
