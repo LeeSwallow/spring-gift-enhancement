@@ -48,7 +48,7 @@ public class WishlistCreateTest extends AbstractWishlistTest {
                 ))
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .post(getRequestUrl())
                 .then()
                 .statusCode(201)
@@ -72,7 +72,7 @@ public class WishlistCreateTest extends AbstractWishlistTest {
         RestAssured.given(this.spec)
                 .contentType("application/json")
                 .body(defaultRequest)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .post(getRequestUrl())
                 .then()
                 .statusCode(201)
@@ -93,7 +93,7 @@ public class WishlistCreateTest extends AbstractWishlistTest {
             RestAssured.given(this.spec)
                     .contentType("application/json")
                     .body(request)
-                    .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                    .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                     .post(getRequestUrl())
                     .then()
                     .statusCode(400));
@@ -131,7 +131,7 @@ public class WishlistCreateTest extends AbstractWishlistTest {
                 ))
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .post(getRequestUrl())
                 .then()
                 .statusCode(404);

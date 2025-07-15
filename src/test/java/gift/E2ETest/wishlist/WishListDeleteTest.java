@@ -27,7 +27,7 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
                         pathParameters(
                                 parameterWithName("id").description("삭제할 위시리스트 ID")
                         )))
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .delete(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(204);
@@ -43,14 +43,14 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
 
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 전체 삭제 성공"))
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .delete(getRequestUrl())
                 .then()
                 .statusCode(204);
 
         // 위시리스트가 비어있는지 확인
         RestAssured.given()
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .get(getRequestUrl())
                 .then()
                 .statusCode(200)
@@ -69,7 +69,7 @@ public class WishListDeleteTest extends  AbstractWishlistTest {
                         pathParameters(
                                 parameterWithName("productId").description("삭제할 위시리스트 ID")
                         )))
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .delete(getRequestUrl() + "/{productId}", nonExistentProductId)
                 .then()
                 .statusCode(404);

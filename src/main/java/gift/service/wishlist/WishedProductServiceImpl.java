@@ -85,9 +85,6 @@ public class WishedProductServiceImpl implements WishedProductService {
     @Transactional
     public void delete(Long userId, Long wishedProductId) {
         getById(userId, wishedProductId); // 검증을 위해 호출
-        if (!wishedProductRepository.existsByUserIdAndProductId(userId,wishedProductId)) {
-            throw new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId);
-        }
         wishedProductRepository.deleteById(wishedProductId);
     }
 
@@ -115,23 +112,17 @@ public class WishedProductServiceImpl implements WishedProductService {
     @Transactional
     public Optional<WishedProduct> increaseProductQuantity(Long userId, Long wishedProductId, Integer quantity) {
         var existingProduct =  getById(userId, wishedProductId);
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("증가할 수량은 1 이상이어야 합니다. productId: " + wishedProductId);
-        }
         existingProduct.setQuantity(existingProduct.getQuantity() + quantity);
         return Optional.of(wishedProductRepository.save(existingProduct));
     }
 
     @Override
     @Transactional
-    public Optional<WishedProduct> decreaseProductQuantity(Long userId, Long productId, Integer quantity) {
-        var wishedProduct = getById(userId, productId);
-        validateProductId(productId);
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("감소할 수량은 1 이상이어야 합니다. productId: " + productId);
-        }
+    public Optional<WishedProduct> decreaseProductQuantity(Long userId, Long wishedProductId, Integer quantity) {
+        var wishedProduct = getById(userId, wishedProductId);
+        validateProductId(wishedProductId);
         if (wishedProduct.getQuantity() <= quantity) {
-            wishedProductRepository.deleteById(productId);
+            wishedProductRepository.deleteById(wishedProductId);
             return Optional.empty();
         }
         wishedProduct.setQuantity(wishedProduct.getQuantity() - quantity);

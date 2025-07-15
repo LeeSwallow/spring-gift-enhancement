@@ -57,7 +57,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                         responseFields(PRODUCT_RESPONSE)))
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .put(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(200)
@@ -91,7 +91,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                 RestAssured.given(this.spec)
                         .contentType("application/json")
                         .body(request)
-                        .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                        .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                         .put(getRequestUrl() + "/{id}", res.id())
                         .then()
                         .statusCode(400));
@@ -129,12 +129,12 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                         responseFields(PRODUCT_RESPONSE)))
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .patch(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
-                .body("id", equalTo(productId.intValue()))
+                .body("productId", equalTo(productId.intValue()))
                 .body("name", notNullValue())
                 .body("name", equalTo(this.testProducts.getFirst().name()))
                 .body("price", notNullValue())
@@ -161,7 +161,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
                         )))
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                 .patch(getRequestUrl() + "/{id}", res.id())
                 .then()
                 .statusCode(204); // 수량이 0으로 감소되었으므로 204 No Content 반환
@@ -181,7 +181,7 @@ public class WishListUpdateTest extends AbstractWishlistTest {
             RestAssured.given(this.spec)
                     .contentType("application/json")
                     .body(request)
-                    .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                    .header(AUTH_HEADER_KEY, this.testToken) // 관리자 권한으로 요청
                     .patch(getRequestUrl() + "/{id}", res.id())
                     .then()
                     .statusCode(400));

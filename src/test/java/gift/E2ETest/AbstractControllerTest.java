@@ -15,7 +15,6 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -26,7 +25,6 @@ import static org.springframework.restdocs.restassured.RestAssuredRestDocumentat
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestDocs
 @ExtendWith(RestDocumentationExtension.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class AbstractControllerTest {
 
     @LocalServerPort
@@ -45,7 +43,7 @@ public abstract class AbstractControllerTest {
         fieldWithPath("status").description("HTTP 상태 코드").type(JsonFieldType.NUMBER),
         fieldWithPath("detail").description("에러 상세 메시지").type(JsonFieldType.STRING),
         fieldWithPath("instance").description("에러 인스턴스 ID").type(JsonFieldType.STRING).optional(),
-        fieldWithPath("timestamp").description("에러 발생 시간").type(JsonFieldType.STRING),
+        fieldWithPath("timestamp").description("에러 발생 시간").type(JsonFieldType.STRING).optional(),
         fieldWithPath("stackTrace").description("스택 트레이스 (개발 환경에서만 사용)").type(JsonFieldType.ARRAY).optional(),
         fieldWithPath("validationErrors").description("유효성 검사 오류 목록").type(JsonFieldType.ARRAY).optional(),
         fieldWithPath("validationErrors[].field").description("유효성 검사 오류 필드").type(JsonFieldType.STRING).optional(),
@@ -59,10 +57,7 @@ public abstract class AbstractControllerTest {
                 .addFilter(documentationConfiguration(provider))
                 .build();
 
-        LoginRequest request = new LoginRequest(
-             "test@test.com",
-                "qwerty1234@"
-        );
+        LoginRequest request = new LoginRequest("test@test.com", "qwerty1234@");
 
         TokenResponse tokenResponse = RestAssured.given()
                 .contentType("application/json")

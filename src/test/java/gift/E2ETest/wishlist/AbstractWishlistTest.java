@@ -1,6 +1,8 @@
 package gift.E2ETest.wishlist;
 
 import gift.E2ETest.AbstractControllerTest;
+import gift.dto.auth.SignupRequest;
+import gift.dto.auth.TokenResponse;
 import gift.dto.product.ProductCreateRequest;
 import gift.dto.product.ProductDefaultResponse;
 import gift.dto.wishlist.CreateWishedProductRequest;
@@ -12,9 +14,24 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class AbstractWishlistTest extends AbstractControllerTest {
     protected List<ProductDefaultResponse> testProducts;
+    protected String testToken;
+
+
+    private TokenResponse signup(String email, String password) {
+        // 테스트용 사용자 생성 메서드
+        return RestAssured.given()
+                .contentType("application/json")
+                .body(new SignupRequest(email, password, password))
+                .post(getBaseUrl() + "/api/auth/signup")
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(TokenResponse.class);
+    }
 
     private ProductDefaultResponse createProduct(ProductCreateRequest request) {
         return RestAssured.given()
@@ -34,7 +51,7 @@ public abstract class AbstractWishlistTest extends AbstractControllerTest {
         return RestAssured.given()
                 .contentType("application/json")
                 .body(request)
-                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 권한으로 요청
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .post(getRequestUrl())
                 .then()
                 .statusCode(201)
@@ -53,6 +70,10 @@ public abstract class AbstractWishlistTest extends AbstractControllerTest {
             ProductDefaultResponse response = createProduct(request);
             this.testProducts.add(response);
         }
+
+        UUID radomUUID = UUID.randomUUID();
+        var tokenResponse = signup(radomUUID + "@test.com", "qwerty1234@");
+        this.testToken = "Bearer " + tokenResponse.token();
     }
 
     @AfterEach
@@ -60,14 +81,20 @@ public abstract class AbstractWishlistTest extends AbstractControllerTest {
         this.testProducts.forEach(product ->
             RestAssured.given()
                     .header(AUTH_HEADER_KEY, this.adminToken)
-                    .delete(getBaseUrl() + "/api/products/" + product.id())
+                    .delete(getBaseUrl() + "/api/products/{id}", product.id())
                     .then()
                     .statusCode(204));
         this.testProducts.clear();
 
         RestAssured.given()
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .delete(getRequestUrl())
+                .then()
+                .statusCode(204);
+
+        RestAssured.given()
+                .header(AUTH_HEADER_KEY, this.testToken) // 테스트 사용자 토큰으로 요청
+                .delete(getBaseUrl() + "/api/users/me")
                 .then()
                 .statusCode(204);
     }

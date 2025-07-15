@@ -57,7 +57,7 @@ public class WishListReadTest extends AbstractWishlistTest {
                                 parameterWithName("size").description("페이지 크기").optional()
                         ),
                         responseFields(PRODUCT_READ_PAGE_RESPONSE)))
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
                 .get(getRequestUrl())
                 .then()
@@ -82,7 +82,7 @@ public class WishListReadTest extends AbstractWishlistTest {
                                 parameterWithName("size").description("페이지 크기").optional()
                         ),
                         responseFields(ERROR_MESSAGE_FIELDS)))
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
                 .get(getRequestUrl() + "?page=-1&size=5")
                 .then()
@@ -96,7 +96,7 @@ public class WishListReadTest extends AbstractWishlistTest {
                                 parameterWithName("size").description("페이지 크기").optional()
                         ),
                         responseFields(ERROR_MESSAGE_FIELDS)))
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
                 .get(getRequestUrl() + "?page=0&size=-1")
                 .then()
@@ -130,7 +130,7 @@ public class WishListReadTest extends AbstractWishlistTest {
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 단건 제품 조회 성공",
                         responseFields(PRODUCT_READ_RESPONSE)))
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
                 .get(getRequestUrl() + "/" + res.id())
                 .then()
@@ -158,7 +158,7 @@ public class WishListReadTest extends AbstractWishlistTest {
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 단건 제품 조회 실패 - 존재하지 않는 제품 ID",
                         responseFields(ERROR_MESSAGE_FIELDS)))
-                .header(AUTH_HEADER_KEY, this.adminToken)
+                .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
                 .get(getRequestUrl() + "/999999") // 존재하지 않는 ID
                 .then()
