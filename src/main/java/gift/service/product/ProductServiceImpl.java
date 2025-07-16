@@ -91,4 +91,14 @@ public class ProductServiceImpl implements ProductService {
         validateProduct(deleted, role, userId);
         productRepository.deleteById(productId);
     }
+
+    @Override
+    public Boolean existsById(Long productId) {
+        return productRepository.existsById(productId);
+    }
+
+    @Override
+    public Product getReference(Long productId) {
+        return productRepository.getReferenceById(productId);
+    }
 }

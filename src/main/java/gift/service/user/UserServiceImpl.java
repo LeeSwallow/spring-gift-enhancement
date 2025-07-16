@@ -36,12 +36,20 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 ID의 사용자를 찾을 수 없습니다. : " + userId));
     }
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("해당 이메일의 사용자를 찾을 수 없습니다. : " + email));
+    }
 
     @Override
     @Transactional
     public User create(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new DuplicateKeyException("이미 존재하는 이메일입니다: " + user.getEmail());
+        }
+        if (user.getRoles().isEmpty()) {
+            throw new IllegalArgumentException("사용자 역할은 최소 하나 이상이어야 합니다.");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
@@ -79,5 +87,15 @@ public class UserServiceImpl implements UserService {
     public void deleteById(Long userId) {
         findById(userId); // user가 존재하는지 확인
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Boolean existsById(Long userId) {
+        return userRepository.existsById(userId);
+    }
+
+    @Override
+    public User getReference(Long userId) {
+        return userRepository.getReferenceById(userId);
     }
 }
