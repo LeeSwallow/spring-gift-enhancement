@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface WishedProductRepository extends JpaRepository<WishedProduct, Long> {
 
-    @EntityGraph(attributePaths = {"product"})
+    @EntityGraph("WishedProduct.withProduct")
     Page<WishedProduct> findAllByUserId(Long userId, Pageable pageable);
 
     void deleteAllByUserId(Long userId);

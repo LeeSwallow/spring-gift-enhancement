@@ -11,13 +11,13 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    @EntityGraph(attributePaths = {"roles"})
+    @EntityGraph("User.withRole")
     Page<User> findAllBy(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"roles"})
+    @EntityGraph("User.withRole")
     Optional<User> findById(Long id);
 
-    @EntityGraph(attributePaths = {"roles"}, type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph("User.withRole")
     Optional<User> findByEmail(String email);
 
     Boolean existsByEmail(String email);

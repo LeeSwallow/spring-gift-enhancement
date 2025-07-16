@@ -4,11 +4,25 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.Instant;
-
-
 @Entity
 @Table(name="wished_products")
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "WishedProduct.withUser",
+                attributeNodes = {@NamedAttributeNode("user")}
+        ),
+        @NamedEntityGraph(
+                name = "WishedProduct.withProduct",
+                attributeNodes = {@NamedAttributeNode("product")}
+        ),
+        @NamedEntityGraph(
+                name = "WishedProduct.withUserAndProduct",
+                attributeNodes = {
+                        @NamedAttributeNode("user"),
+                        @NamedAttributeNode("product")
+                }
+        )
+})
 public class WishedProduct extends BaseEntity {
 
     @Id

@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
+@NamedEntityGraph(
+        name = "User.withRole",
+        attributeNodes = { @NamedAttributeNode("roles") }
+)
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
