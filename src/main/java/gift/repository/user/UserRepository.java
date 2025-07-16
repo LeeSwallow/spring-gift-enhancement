@@ -1,20 +1,24 @@
 package gift.repository.user;
 
-
 import gift.entity.User;
-import gift.common.model.CustomPage;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository {
-    @Deprecated
-    List<User> findAll();
-    CustomPage<User> findAll(int page, int size);
-    Optional<User> findById(Long userId);
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    @EntityGraph("User.withRole")
+    Page<User> findAllBy(Pageable pageable);
+
+    @EntityGraph("User.withRole")
+    Optional<User> findById(Long id);
+
+    @EntityGraph("User.withRole")
     Optional<User> findByEmail(String email);
-    User save(User user);
-    @Deprecated
-    User updateFieldById(Long userId, String fieldName, Object value);
-    Boolean deleteById(Long userId);
+
+    Boolean existsByEmail(String email);
 }

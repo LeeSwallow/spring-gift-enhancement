@@ -1,6 +1,7 @@
 package gift.controller.api;
 
 import gift.common.aop.annotation.PreAuthorize;
+import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
 import gift.dto.wishlist.CreateWishedProductRequest;
@@ -10,6 +11,7 @@ import gift.dto.wishlist.WishedProductResponse;
 import gift.entity.UserRole;
 import gift.entity.WishedProduct;
 import gift.service.wishlist.WishedProductService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,73 +37,73 @@ public class WishlistController {
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        var pagedResponse = wishedProductService.getAll(auth.userId(), page, size);
+        var pagedResponse = wishedProductService.findAllBy(auth.userId(), page, size);
 
         return new ResponseEntity<>(
-                CustomPage.convert(pagedResponse, WishedProductResponse::from), HttpStatus.OK
+                CustomPage.convert(pagedResponse, EntityDtoMapper::toDto), HttpStatus.OK
         );
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/{id}")
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<WishedProductResponse> getWishlistItem(
-            @PathVariable Long productId,
+            @PathVariable Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        WishedProduct wishedProduct = wishedProductService.getByProductId(auth.userId(), productId);
-        return new ResponseEntity<>(WishedProductResponse.from(wishedProduct), HttpStatus.OK);
+        WishedProduct wishedProduct = wishedProductService.findBy(auth.userId(), id);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(wishedProduct), HttpStatus.OK);
     }
 
     @PostMapping()
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<WishedProductResponse> addWishlistItem(
-            @RequestBody CreateWishedProductRequest request,
+            @Valid @RequestBody CreateWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        WishedProduct wishedProduct = wishedProductService.addProduct(auth.userId(), request.productId(), request.quantity());
-        return new ResponseEntity<>(WishedProductResponse.from(wishedProduct), HttpStatus.CREATED);
+        WishedProduct wishedProduct = wishedProductService.create(auth.userId(), request.productId(), request.quantity());
+        return new ResponseEntity<>(EntityDtoMapper.toDto(wishedProduct), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/{id}")
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<?> updateWishlistItem(
-            @PathVariable Long productId,
-            @RequestBody UpdateWishedProductRequest request,
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        var wishedProduct = wishedProductService.updateProduct(auth.userId(), productId, request.quantity());
+        var wishedProduct = wishedProductService.updateQuantityBy(auth.userId(), id, request.quantity());
         if (wishedProduct.isEmpty()) {
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<>(WishedProductResponse.from(wishedProduct.get()), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(wishedProduct.get()), HttpStatus.OK);
     }
 
-    @PatchMapping("/{productId}")
+    @PatchMapping("/{id}")
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<?> patchWishlistItem(
-            @PathVariable Long productId,
-            @RequestBody PatchWishedProductRequest request,
+            @PathVariable Long id,
+            @Valid @RequestBody PatchWishedProductRequest request,
             @RequestAttribute("auth") CustomAuth auth
     ) {
         Optional<WishedProduct> wishedProduct;
         if (request.increment()) {
-            wishedProduct = wishedProductService.increaseProductQuantity(auth.userId(), productId, request.quantity());
+            wishedProduct = wishedProductService.increaseQuantityBy(auth.userId(), id, request.quantity());
         } else {
-            wishedProduct = wishedProductService.decreaseProductQuantity(auth.userId(), productId, request.quantity());
+            wishedProduct = wishedProductService.decreaseQuantityBy(auth.userId(), id, request.quantity());
         }
         if (wishedProduct.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<>(WishedProductResponse.from(wishedProduct.get()), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(wishedProduct.get()), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/{id}")
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<Void> deleteWishlistItem(
-            @PathVariable Long productId,
+            @PathVariable Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        wishedProductService.removeProduct(auth.userId(), productId);
+        wishedProductService.deleteBy(auth.userId(), id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -110,7 +112,7 @@ public class WishlistController {
     public ResponseEntity<Void> deleteAllWishlistItems(
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        wishedProductService.removeAllProducts(auth.userId());
+        wishedProductService.deleteAll(auth.userId());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

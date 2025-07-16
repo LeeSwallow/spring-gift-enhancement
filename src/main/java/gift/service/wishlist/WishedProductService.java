@@ -6,12 +6,12 @@ import gift.entity.WishedProduct;
 import java.util.Optional;
 
 public interface WishedProductService {
-    CustomPage<WishedProduct> getAll(Long userId, int page, int size);
-    WishedProduct getByProductId(Long userId, Long productId);
-    WishedProduct addProduct(Long userId, Long productId, Integer quantity);
-    void removeProduct(Long userId, Long productId);
-    void removeAllProducts(Long userId);
-    Optional<WishedProduct> updateProduct(Long userId, Long productId, Integer quantity);
-    Optional<WishedProduct> increaseProductQuantity(Long userId, Long productId, Integer quantity);
-    Optional<WishedProduct> decreaseProductQuantity(Long userId, Long productId, Integer quantity);
+    CustomPage<WishedProduct> findAllBy(Long userId, int page, int size);
+    WishedProduct findBy(Long userId, Long wishedProductId);
+    WishedProduct create(Long userId, Long productId, Integer quantity);
+    void deleteBy(Long userId, Long wishedProductId);
+    void deleteAll(Long userId);
+    Optional<WishedProduct> updateQuantityBy(Long userId, Long wishedProductId, Integer quantity);
+    Optional<WishedProduct> increaseQuantityBy(Long userId, Long wishedProductId, Integer quantity);
+    Optional<WishedProduct> decreaseQuantityBy(Long userId, Long wishedProductId, Integer quantity);
 }

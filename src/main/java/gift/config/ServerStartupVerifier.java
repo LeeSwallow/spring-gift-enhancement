@@ -17,12 +17,11 @@ public class ServerStartupVerifier {
     private final ConfigurableApplicationContext context;
     private String passwordEncoderAlgorithm;
 
-
    public ServerStartupVerifier(
-           @Value("${gift.jwt.secret:#{null}}") String jwtToken,
-           @Value("${gift.jwt.expiration:#{null}}") Integer jwtExpirationTime,
-           @Value("${gift.password.encoder.algorithm:#{null}}") String passwordEncoderAlgorithm,
-              ConfigurableApplicationContext context
+                @Value("${gift.jwt.secret:#{null}}") String jwtToken,
+                @Value("${gift.jwt.expiration:#{null}}") Integer jwtExpirationTime,
+                @Value("${gift.password.encoder.algorithm:#{null}}") String passwordEncoderAlgorithm,
+                ConfigurableApplicationContext context
    ) {
         this.jwtToken = jwtToken;
         this.jwtExpirationTime = jwtExpirationTime;

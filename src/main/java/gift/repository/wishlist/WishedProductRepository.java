@@ -1,18 +1,32 @@
 package gift.repository.wishlist;
 
-import gift.common.model.CustomPage;
 import gift.entity.WishedProduct;
+import gift.entity.WishedProductStats;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
 
-public interface WishedProductRepository {
-    CustomPage<WishedProduct> findAll(Long userId, int page, int size);
-    Optional<WishedProduct> findById(Long userId, Long productId);
-    WishedProduct addProduct(Long userId, Long productId, Integer quantity);
-    Boolean removeProduct(Long userId, Long productId);
-    void removeAllProducts(Long userId);
-    WishedProduct updateProduct(Long userId, Long productId, Integer quantity);
-    WishedProduct increaseProductQuantity(Long userId, Long productId, Integer quantity);
-    WishedProduct decreaseProductQuantity(Long userId, Long productId, Integer quantity);
-    Integer countBy(Long userId);
+public interface WishedProductRepository extends JpaRepository<WishedProduct, Long> {
+
+    @EntityGraph("WishedProduct.withProduct")
+    Page<WishedProduct> findAllByUserId(Long userId, Pageable pageable);
+
+    void deleteAllByUserId(Long userId);
+
+    Boolean existsByUserIdAndProductId(Long userId, Long productId);
+
+    @Query("""
+            SELECT new gift.entity.WishedProductStats(
+                SUM(w.quantity),
+                SUM(w.quantity * p.price)
+            )
+            FROM WishedProduct w
+            JOIN w.product p
+            WHERE w.user.id = :userId
+       """)
+    WishedProductStats calculateStatsByUserId(Long userId);
+
 }

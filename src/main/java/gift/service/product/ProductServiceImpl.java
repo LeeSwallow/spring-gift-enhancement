@@ -1,17 +1,16 @@
 package gift.service.product;
 
 import gift.common.exception.AccessDeniedException;
-import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
 import gift.entity.Product;
 import gift.entity.UserRole;
 import gift.repository.product.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -24,41 +23,26 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
-    private void validateProduct(Product product, CustomAuth auth) {
-        if (auth.role() == UserRole.ROLE_ADMIN) {
+    private void validateProduct(Product product, UserRole role, Long userId) {
+        if (role == UserRole.ROLE_ADMIN) {
             log.info("관리자 권한으로 상품 검증을 건너뜁니다.");
             return;
         }
-
-        if (product == null) {
-            log.error("상품 정보가 null 입니다.");
-            throw new IllegalArgumentException("상품 정보는 필수입니다.");
-        }
-        if (product.getOwnerId() == null) {
-            log.error("상품 소유자 ID가 null 입니다.");
-            throw new IllegalArgumentException("상품 소유자 ID는 필수입니다.");
-        }
-
-        if (!product.getOwnerId().equals(auth.userId())){
+        if (!product.getOwnerId().equals(userId)){
             log.error("상품 소유자 ID가 인증된 사용자 ID와 일치하지 않습니다. 소유자 ID: {}, 인증된 사용자 ID: {}",
-                      product.getOwnerId(), auth.userId());
+                      product.getOwnerId(), userId);
             throw new AccessDeniedException("상품 소유자 ID가 인증된 사용자 ID와 일치하지 않습니다.");
         }
     }
 
 
     @Override
-    public List<Product> getAll() {
-        return productRepository.findAll();
+    public CustomPage<Product> findAllBy(int page, int size) {
+        return CustomPage.from(productRepository.findAllBy(PageRequest.of(page, size)));
     }
 
     @Override
-    public CustomPage<Product> getBy(int page, int size) {
-        return productRepository.findAll(page, size);
-    }
-
-    @Override
-    public Product getById(Long productId) {
+    public Product findById(Long productId) {
         if (productId == null) {
             log.error("상품 ID가 null 입니다.");
             throw new IllegalArgumentException("상품 ID는 필수입니다.");
@@ -75,16 +59,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product create(Product product, CustomAuth auth) {
-        product.setOwnerId(auth.userId());
+    public Product create(Product product, UserRole role, Long userId) {
+        product.setOwnerId(userId);
         return productRepository.save(product);
     }
 
     @Override
     @Transactional
-    public Product update(Product product, CustomAuth auth) {
-        Product updated = getById(product.getId());
-        validateProduct(updated, auth);
+    public Product update(Product product, UserRole role, Long userId) {
+        Product updated = findById(product.getId());
+        validateProduct(updated, role, userId);
         if (product.getName() != null) {
             updated.setName(product.getName());
         }
@@ -102,30 +86,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product patch(Product product, CustomAuth auth) {
-        Product updated = getById(product.getId());
-        validateProduct(updated, auth);
-        if (product.getName() != null) {
-            updated = productRepository.updateFieldById(product.getId(), "name", product.getName());
-        }
-        if (product.getPrice() != null) {
-            updated = productRepository.updateFieldById(product.getId(), "price", product.getPrice());
-        }
-        if (product.getImageUrl() != null) {
-            updated = productRepository.updateFieldById(product.getId(), "image_url", product.getImageUrl());
-        }
-        return updated;
-    }
-
-    @Override
-    @Transactional
-    public void deleteById(Long productId, CustomAuth auth) {
-        Product deleted = getById(productId);
-        validateProduct(deleted, auth);
-
-        if (!productRepository.deleteById(productId)) {
-            throw new IllegalStateException(
-                    String.format("Id %d에 해당하는 상품을 삭제할 수 없습니다.", productId));
-        }
+    public void deleteById(Long productId, UserRole role, Long userId) {
+        Product deleted = findById(productId);
+        validateProduct(deleted, role, userId);
+        productRepository.deleteById(productId);
     }
 }

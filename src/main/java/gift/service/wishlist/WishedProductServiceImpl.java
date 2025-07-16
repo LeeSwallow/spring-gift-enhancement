@@ -6,9 +6,11 @@ import gift.repository.product.ProductRepository;
 import gift.repository.user.UserRepository;
 import gift.repository.wishlist.WishedProductRepository;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -29,115 +31,100 @@ public class WishedProductServiceImpl implements WishedProductService {
     }
 
     private void validateUserId(Long userId) {
-        if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("유효하지 않은 사용자 ID 입니다. userId: " + userId);
-        }
-        if (userRepository.findById(userId).isEmpty()) {
+        if (!userRepository.existsById(userId)) {
             throw new NoSuchElementException("존재하지 않는 사용자입니다. userId: " + userId);
         }
     }
 
-    private void validateProductId(Long productId) {
-        if (productId == null || productId <= 0) {
-            throw new IllegalArgumentException("유효하지 않은 제품 ID 입니다. productId: " + productId);
-        }
-        if (productRepository.findById(productId).isEmpty()) {
+    public void validateProductId(Long productId) {
+        if (!productRepository.existsById(productId)) {
             throw new NoSuchElementException("존재하지 않는 제품입니다. productId: " + productId);
         }
     }
 
-
     @Override
     @Transactional
-    public CustomPage<WishedProduct> getAll(Long userId, int page, int size) {
+    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
         validateUserId(userId);
-
-        return wishedProductRepository.findAll(userId, page, size);
+        var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
+        var customPage = CustomPage.from(pagedProducts);
+        var stats = wishedProductRepository.calculateStatsByUserId(userId);
+        customPage.setExtras(
+                Map.of("totalQuantity", stats.getTotalQuantity(), "totalPrice", stats.getTotalPrice())
+        );
+        return customPage;
     }
 
     @Override
     @Transactional
-    public WishedProduct getByProductId(Long userId, Long productId) {
+    public WishedProduct findBy(Long userId, Long wishedProductId) {
         validateUserId(userId);
-        validateProductId(productId);
-        return wishedProductRepository.findById(userId, productId)
-                .orElseThrow(() -> new NoSuchElementException("장바구니에 해당 제품이 없습니다. productId: " + productId));
-    }
+        var wishedProduct = wishedProductRepository.findById(wishedProductId)
+                .orElseThrow(() -> new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId));
 
-    @Override
-    @Transactional
-    public WishedProduct addProduct(Long userId, Long productId, Integer quantity) {
-        validateUserId(userId);
-        validateProductId(productId);
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("새롭게 추가되는 제품의 수량은 1 이상이어야 합니다. productId: " + productId);
+        if (!wishedProduct.getUser().getId().equals(userId)) {
+            throw new NoSuchElementException("장바구니에 해당 제품이 없습니다. wishedProductId: " + wishedProductId);
         }
-        if (wishedProductRepository.findById(userId, productId).isPresent()) {
+        return wishedProduct;
+    }
+
+    @Override
+    @Transactional
+    public WishedProduct create(Long userId, Long productId, Integer quantity) {
+        validateUserId(userId);
+        validateProductId(productId);
+        if (wishedProductRepository.existsByUserIdAndProductId(userId, productId)) {
             throw new DuplicateKeyException("이미 장바구니에 존재하는 제품입니다. productId: " + productId);
         }
-        return wishedProductRepository.addProduct(userId, productId, quantity);
+        var productRef = productRepository.getReferenceById(productId);
+        var userRef = userRepository.getReferenceById(userId);
+        return wishedProductRepository.save(new WishedProduct(null, userRef, productRef, quantity));
     }
 
     @Override
     @Transactional
-    public void removeProduct(Long userId, Long productId) {
-        validateUserId(userId);
-        validateProductId(productId);
-        getByProductId(userId, productId); // 검증을 위해 호출
-        if (!wishedProductRepository.removeProduct(userId, productId)) {
-            throw new IllegalStateException("장바구니에서 제품을 제거하는데 실패했습니다. " +
-                    "userId: " + userId + ", productId: " + productId);
-        }
+    public void deleteBy(Long userId, Long wishedProductId) {
+        findBy(userId, wishedProductId); // 검증을 위해 호출
+        wishedProductRepository.deleteById(wishedProductId);
     }
 
     @Override
     @Transactional
-    public void removeAllProducts(Long userId) {
+    public void deleteAll(Long userId) {
         validateUserId(userId);
-        wishedProductRepository.removeAllProducts(userId);
+        wishedProductRepository.deleteAllByUserId(userId);
     }
 
     @Override
     @Transactional
-    public Optional<WishedProduct> updateProduct(Long userId, Long productId, Integer quantity) {
-        validateUserId(userId);
-        validateProductId(productId);
-        getByProductId(userId, productId); // 검증을 위해 호출
-        if (quantity == null || quantity < 0) {
-            throw new IllegalArgumentException("업데이트 되는 수량은 0 이상이어야 합니다. productId: " + productId);
-        }
-        if (quantity <= 0) {
-            removeProduct(userId, productId);
+    public Optional<WishedProduct> updateQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var existingProduct = findBy(userId, wishedProductId);
+
+        if (quantity == null || quantity <= 0) {
+            wishedProductRepository.deleteById(wishedProductId);
             return Optional.empty();
         }
-        return Optional.of(wishedProductRepository.updateProduct(userId, productId, quantity));
+        existingProduct.setQuantity(quantity);
+        return Optional.of(wishedProductRepository.save(existingProduct));
     }
 
     @Override
     @Transactional
-    public Optional<WishedProduct> increaseProductQuantity(Long userId, Long productId, Integer quantity) {
-        validateUserId(userId);
-        validateProductId(productId);
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("증가할 수량은 1 이상이어야 합니다. productId: " + productId);
-        }
-        getByProductId(userId, productId);
-        return Optional.of(wishedProductRepository.increaseProductQuantity(userId, productId, quantity));
+    public Optional<WishedProduct> increaseQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var existingProduct =  findBy(userId, wishedProductId);
+        existingProduct.setQuantity(existingProduct.getQuantity() + quantity);
+        return Optional.of(wishedProductRepository.save(existingProduct));
     }
 
     @Override
     @Transactional
-    public Optional<WishedProduct> decreaseProductQuantity(Long userId, Long productId, Integer quantity) {
-        validateUserId(userId);
-        validateProductId(productId);
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("감소할 수량은 1 이상이어야 합니다. productId: " + productId);
-        }
-        WishedProduct wishedProduct = getByProductId(userId, productId);
+    public Optional<WishedProduct> decreaseQuantityBy(Long userId, Long wishedProductId, Integer quantity) {
+        var wishedProduct = findBy(userId, wishedProductId);
         if (wishedProduct.getQuantity() <= quantity) {
-            removeProduct(userId, productId);
+            wishedProductRepository.deleteById(wishedProductId);
             return Optional.empty();
         }
-        return Optional.of(wishedProductRepository.decreaseProductQuantity(userId, productId, quantity));
+        wishedProduct.setQuantity(wishedProduct.getQuantity() - quantity);
+        return Optional.of(wishedProductRepository.save(wishedProduct));
     }
 }

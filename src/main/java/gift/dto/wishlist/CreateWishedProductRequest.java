@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record CreateWishedProductRequest(
     @NotNull(message = "제품 ID는 필수입니다.")
     Long productId,
+
     @Min(value = 1, message = "수량은 1 이상이어야 합니다.")
     Integer quantity
 ) {

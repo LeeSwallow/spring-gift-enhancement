@@ -1,6 +1,7 @@
 package gift.controller.api;
 
 import gift.common.aop.annotation.PreAuthorize;
+import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.dto.product.ProductDefaultResponse;
 import gift.common.model.CustomPage;
@@ -35,7 +36,7 @@ public class ProductController {
             @RequestParam(value = "size", defaultValue = "5")
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
             ) {
-        var productPage = CustomPage.convert(productService.getBy(page, size), ProductDefaultResponse::from);
+        var productPage = CustomPage.convert(productService.findAllBy(page, size), EntityDtoMapper::toDto);
         return new ResponseEntity<>(productPage, HttpStatus.OK);
     }
 
@@ -43,8 +44,8 @@ public class ProductController {
     public ResponseEntity<ProductDefaultResponse> getProductById(
             @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id
     ) {
-        Product product = productService.getById(id);
-        return new ResponseEntity<>(ProductDefaultResponse.from(product), HttpStatus.OK);
+        Product product = productService.findById(id);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(product), HttpStatus.OK);
     }
 
     @PostMapping
@@ -53,9 +54,9 @@ public class ProductController {
             @Valid @RequestBody ProductCreateRequest dto,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        Product product = productService.create(dto.toProduct(), auth);
+        Product product = productService.create(EntityDtoMapper.toEntity(dto), auth.role(), auth.userId());
         log.info("상품 생성 성공: {}", product);
-        return new ResponseEntity<>(ProductDefaultResponse.from(product), HttpStatus.CREATED);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(product), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -65,21 +66,11 @@ public class ProductController {
             @Valid @RequestBody ProductUpdateRequest dto,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        Product updatedProduct = productService.update(dto.toEntity(id), auth);
+        var product = EntityDtoMapper.toEntity(dto);
+        product.setId(id);
+        Product updatedProduct = productService.update(product, auth.role(), auth.userId());
         log.info("상품 업데이트 성공: {}", updatedProduct);
-        return new ResponseEntity<>(ProductDefaultResponse.from(updatedProduct), HttpStatus.OK);
-    }
-
-    @PatchMapping("/{id}")
-    @PreAuthorize(UserRole.ROLE_USER)
-    public ResponseEntity<ProductDefaultResponse> patchProduct(
-            @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id,
-            @Valid @RequestBody ProductUpdateRequest dto,
-            @RequestAttribute("auth") CustomAuth auth
-        ) {
-        Product patchedProduct = productService.patch(dto.toEntity(id), auth);
-        log.info("상품 패치 성공: {}", patchedProduct);
-        return new ResponseEntity<>(ProductDefaultResponse.from(patchedProduct), HttpStatus.OK);
+        return new ResponseEntity<>(EntityDtoMapper.toDto(updatedProduct), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -88,7 +79,7 @@ public class ProductController {
             @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id,
             @RequestAttribute("auth") CustomAuth auth
     ) {
-        productService.deleteById(id, auth);
+        productService.deleteById(id, auth.role(), auth.userId());
         log.info("상품 삭제 성공: ID={}", id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

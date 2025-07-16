@@ -1,0 +1,125 @@
+package gift.E2ETest.product;
+
+import gift.E2ETest.AbstractControllerTest;
+import gift.dto.auth.LoginRequest;
+import gift.dto.auth.TokenResponse;
+import gift.dto.product.ProductCreateRequest;
+import gift.dto.product.ProductDefaultResponse;
+import gift.dto.user.UserAdminResponse;
+import gift.dto.user.UserCreateRequest;
+import gift.entity.UserRole;
+import io.restassured.RestAssured;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+public abstract class AbstractProductTest extends AbstractControllerTest {
+    protected Map<UserRole, UserAdminResponse> testUsers;
+    protected Map<UserRole, String> testUserTokens;
+    protected List<ProductDefaultResponse> testProductIds;
+
+    private UserAdminResponse getAdminResponse(UserCreateRequest request) {
+        return RestAssured.given()
+                .contentType("application/json")
+                .header(AUTH_HEADER_KEY, this.adminToken) // 관리자 토큰 사용
+                .body(request)
+                .post(getBaseUrl() + "/api/users")
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(UserAdminResponse.class);
+    }
+
+    private ProductDefaultResponse createProduct(ProductCreateRequest request) {
+        return RestAssured.given()
+                .header(AUTH_HEADER_KEY, this.adminToken)
+                .contentType("application/json")
+                .body(request)
+                .post(getRequestUrl())
+                .then()
+                .statusCode(201)
+                .extract()
+                .as(ProductDefaultResponse.class);
+    }
+
+    private String getToken(UserCreateRequest request) {
+        TokenResponse response =  RestAssured.given()
+                .contentType("application/json")
+                .body(new LoginRequest(request.email(), request.password()))
+                .post(getBaseUrl() + "/api/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(TokenResponse.class);
+        return "Bearer " + response.token();
+    }
+
+
+    @BeforeEach
+    public void setUp(RestDocumentationContextProvider provider) {
+        super.setUp(provider);
+
+        Map<UserRole, UserCreateRequest> userRequests = Map.of(
+                UserRole.ROLE_ADMIN,
+                new UserCreateRequest("prodUser1@example.com", "password123!", List.of("ROLE_ADMIN")),
+                UserRole.ROLE_MD,
+                new UserCreateRequest("prodUser2@example.com", "password123!", List.of("ROLE_MD")),
+                UserRole.ROLE_USER,
+                new UserCreateRequest("prodUser3@example.com", "password123!", List.of("ROLE_USER"))
+        );
+        this.testUsers = new HashMap<>();
+        this.testUserTokens = new HashMap<>();
+
+        for (Map.Entry<UserRole, UserCreateRequest> entry : userRequests.entrySet()) {
+            UserRole role = entry.getKey();
+            UserCreateRequest userRequest = entry.getValue();
+            UserAdminResponse userResponse = getAdminResponse(userRequest);
+            this.testUsers.put(role, userResponse);
+            String token = getToken(userRequest);
+            this.testUserTokens.put(role, token);
+        }
+
+        this.testProductIds = new ArrayList<>();
+         Stream.of(
+            new ProductCreateRequest("테스트 제품1", 1000L, "www.example.com/image1.jpg"),
+            new ProductCreateRequest("테스트 제품2", 2000L, "www.example.com/image2.jpg"),
+            new ProductCreateRequest("테스트 제품3", 3000L, "www.example.com/image3.jpg")
+        ).forEach(request ->
+            this.testProductIds.add(createProduct(request)));
+
+    }
+
+    @AfterEach
+    public void tearDown() {
+        if (this.testProductIds != null && !this.testProductIds.isEmpty()) {
+            for (ProductDefaultResponse response : this.testProductIds) {
+                RestAssured.given()
+                        .header(AUTH_HEADER_KEY, this.adminToken)
+                        .when()
+                        .delete(getBaseUrl() + "/api/products/" + response.id())
+                        .then()
+                        .statusCode(204);
+            }
+            this.testProductIds.clear();
+        }
+        for (UserAdminResponse user : this.testUsers.values()) {
+            RestAssured.given()
+                    .header(AUTH_HEADER_KEY, this.adminToken)
+                    .when()
+                    .delete(getBaseUrl() + "/api/users/{id}", user.id())
+                    .then()
+                    .statusCode(204);
+        }
+        this.testUsers.clear();
+    }
+
+    public String getRequestUrl() {
+        return getBaseUrl() + "/api/products";
+    }
+}

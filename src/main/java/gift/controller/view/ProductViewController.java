@@ -1,6 +1,7 @@
 package gift.controller.view;
 
 import gift.common.aop.annotation.PreAuthorize;
+import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
 import gift.dto.product.ProductCreateRequest;
@@ -45,7 +46,7 @@ public class ProductViewController {
         @RequestParam(value = "size", defaultValue = "5")
         @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
     ) {
-        CustomPage<Product> currentPage = productService.getBy(page, size);
+        CustomPage<Product> currentPage = productService.findAllBy(page, size);
         int start = Math.max(0, currentPage.getPage() - 2);
         int end = Math.min(currentPage.getTotalPages() - 1, currentPage.getPage() + 2);
 
@@ -63,7 +64,7 @@ public class ProductViewController {
             @PathVariable @Min(value = 0, message = "상품 ID는 0 이상이어야 합니다.") Long id,
             Model model
     ) {
-        Product product = productService.getById(id);
+        Product product = productService.findById(id);
 
         model.addAttribute("title", "상품 상세 정보");
         model.addAttribute("product", product);
@@ -86,8 +87,8 @@ public class ProductViewController {
     ) {
         try {
             validateRequest(request);
-            Product product = request.toProduct();
-            Product createdProduct = productService.create(product, auth);
+            Product product = EntityDtoMapper.toEntity(request);
+            Product createdProduct = productService.create(product, auth.role(), auth.userId());
             return "redirect:/admin/products/" + createdProduct.getId();
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
