@@ -4,6 +4,7 @@ package gift.controller.api;
 import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
+import gift.common.validation.annotation.SortParam;
 import gift.dto.user.UserCreateRequest;
 import gift.dto.user.UserAdminResponse;
 import gift.dto.user.UserDefaultResponse;
@@ -21,6 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -36,12 +39,23 @@ public class UserController {
             @RequestParam(value = "page", defaultValue = "0")
             @Min(value = 0, message = "페이지 번호는 0 이상이여야 합니다.") Integer page,
             @RequestParam(value = "size", defaultValue = "5")
-            @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
+            @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
+            @RequestParam(value = "sort", required = false)
+            @SortParam(
+                    message = "정렬 파라미터는 id, email, name, createdAt, updatedAt 중 하나여야 합니다.",
+                    allowedFields = {"id", "email", "name", "createdAt", "updatedAt"}
+            )
+            List<String> sortParams
     ) {
-        var pageResponse =  CustomPage.convert(
-            userService.findAllBy(page, size), EntityDtoMapper::toAdminDto
+        CustomPage<User> userPage;
+        if (sortParams == null || sortParams.isEmpty()) {
+            userPage = userService.findAllBy(page, size);
+        } else {
+            userPage = userService.findAllBy(page, size, sortParams);
+        }
+        return new ResponseEntity<>(
+                CustomPage.convert(userPage, EntityDtoMapper::toAdminDto), HttpStatus.OK
         );
-        return new ResponseEntity<>(pageResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

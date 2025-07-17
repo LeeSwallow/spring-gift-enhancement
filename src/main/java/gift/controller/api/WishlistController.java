@@ -4,6 +4,7 @@ import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
+import gift.common.validation.annotation.SortParam;
 import gift.dto.wishlist.CreateWishedProductRequest;
 import gift.dto.wishlist.PatchWishedProductRequest;
 import gift.dto.wishlist.UpdateWishedProductRequest;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -35,12 +37,21 @@ public class WishlistController {
             @Min(value = 0, message = "페이지 번호는 0 이상이여야 합니다.") Integer page,
             @RequestParam(value = "size", defaultValue = "5")
             @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
-            @RequestAttribute("auth") CustomAuth auth
+            @RequestAttribute("auth") CustomAuth auth,
+            @RequestParam(value = "sort", required = false)
+            @SortParam(
+                    message = "정렬 파라미터는 id, productId, name, price, quantity, createdAt, updatedAt 중 하나여야 합니다.",
+                    allowedFields = {"id", "productId", "name", "price", "quantity", "createdAt", "updatedAt"}
+            ) List<String> sortParams
     ) {
-        var pagedResponse = wishedProductService.findAllBy(auth.userId(), page, size);
-
+        CustomPage<WishedProduct> wishlistPage;
+        if (sortParams == null || sortParams.isEmpty()) {
+            wishlistPage = wishedProductService.findAllBy(auth.userId(), page, size);
+        } else {
+            wishlistPage = wishedProductService.findAllBy(auth.userId(), page, size, sortParams);
+        }
         return new ResponseEntity<>(
-                CustomPage.convert(pagedResponse, EntityDtoMapper::toDto), HttpStatus.OK
+                CustomPage.convert(wishlistPage, EntityDtoMapper::toDto), HttpStatus.OK
         );
     }
 
