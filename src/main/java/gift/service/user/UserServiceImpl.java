@@ -1,5 +1,6 @@
 package gift.service.user;
 
+import gift.common.mapper.ModelMapper;
 import gift.common.util.PasswordEncoder;
 import gift.entity.User;
 import gift.common.model.CustomPage;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -28,7 +30,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public CustomPage<User> findAllBy(int page, int size) {
         var pagedUsers = userRepository.findAllBy(PageRequest.of(page, size));
-        return CustomPage.from(pagedUsers);
+        return ModelMapper.toCustomPage(pagedUsers);
+    }
+
+    @Override
+    public CustomPage<User> findAllBy(int page, int size, List<String> sortBy) {
+        var customOrders = ModelMapper.toCustomOrders(sortBy);
+        var pagedUsers = userRepository.findAllBy(PageRequest.of(page, size, ModelMapper.toSort(customOrders)));
+        return ModelMapper.toCustomPage(pagedUsers, customOrders);
     }
 
     @Override

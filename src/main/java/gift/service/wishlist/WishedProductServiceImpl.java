@@ -1,5 +1,6 @@
 package gift.service.wishlist;
 
+import gift.common.mapper.ModelMapper;
 import gift.common.model.CustomPage;
 import gift.entity.WishedProduct;
 import gift.repository.wishlist.WishedProductRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -42,17 +44,33 @@ public class WishedProductServiceImpl implements WishedProductService {
         }
     }
 
-    @Override
-    @Transactional
-    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
-        validateUserId(userId);
-        var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
-        var customPage = CustomPage.from(pagedProducts);
+    private CustomPage<WishedProduct> addExtrasAndReturn(CustomPage<WishedProduct> customPage, Long userId) {
         var stats = wishedProductRepository.calculateStatsByUserId(userId);
         customPage.setExtras(
                 Map.of("totalQuantity", stats.getTotalQuantity(), "totalPrice", stats.getTotalPrice())
         );
         return customPage;
+    }
+
+    @Override
+    @Transactional
+    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
+        validateUserId(userId);
+        var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
+        var customPage = ModelMapper.toCustomPage(pagedProducts);
+        return addExtrasAndReturn(customPage, userId);
+    }
+
+    @Override
+    @Transactional
+    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size, List<String> sortBy) {
+        validateUserId(userId);
+        var customOrders = ModelMapper.toCustomOrders(sortBy);
+        var pagedProducts = wishedProductRepository.findAllByUserId(
+                userId, PageRequest.of(page, size, ModelMapper.toSort(customOrders))
+        );
+        var customPage = ModelMapper.toCustomPage(pagedProducts, customOrders);
+        return addExtrasAndReturn(customPage, userId);
     }
 
     @Override

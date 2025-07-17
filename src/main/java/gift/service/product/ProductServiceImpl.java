@@ -1,6 +1,7 @@
 package gift.service.product;
 
 import gift.common.exception.AccessDeniedException;
+import gift.common.mapper.ModelMapper;
 import gift.common.model.CustomPage;
 import gift.entity.Product;
 import gift.entity.UserRole;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -38,7 +40,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public CustomPage<Product> findAllBy(int page, int size) {
-        return CustomPage.from(productRepository.findAllBy(PageRequest.of(page, size)));
+        return ModelMapper.toCustomPage(productRepository.findAllBy(PageRequest.of(page, size)));
+    }
+
+    @Override
+    public CustomPage<Product> findAllBy(int page, int size, List<String> sortBy) {
+        var customOrders = ModelMapper.toCustomOrders(sortBy);
+
+        var pagedProducts = productRepository.findAllBy(PageRequest.of(page, size, ModelMapper.toSort(customOrders)));
+        return ModelMapper.toCustomPage(pagedProducts, customOrders);
     }
 
     @Override
