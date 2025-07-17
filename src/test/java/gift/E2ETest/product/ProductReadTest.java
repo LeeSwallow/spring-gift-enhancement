@@ -1,12 +1,18 @@
 package gift.E2ETest.product;
 
+import gift.common.model.CustomPage;
+import gift.dto.product.ProductDefaultResponse;
 import io.restassured.RestAssured;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import static org.hamcrest.Matchers.notNullValue;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
@@ -41,10 +47,7 @@ public class ProductReadTest extends AbstractProductTest {
         String url = getBaseUrl() + "/api/products";
         RestAssured.given(this.spec)
                 .filter(document("상품 전체 조회 성공",
-                        queryParameters(
-                            parameterWithName("page").description("페이지 번호").optional(),
-                            parameterWithName("size").description("페이지 크기").optional()
-                        ),
+                        queryParameters(PAGE_PARAMETERS),
                         responseFields(PRODUCT_READ_PAGE_RESPONSE)))
                 .when()
                 .get(url)
@@ -59,6 +62,33 @@ public class ProductReadTest extends AbstractProductTest {
                 .body("contents[0].name", notNullValue())
                 .body("contents[0].price", notNullValue())
                 .body("contents[0].imageUrl", notNullValue());
+    }
+
+    @Test
+    @DisplayName("전체 제품 조회 성공 테스트 : 페이지와 정렬 파라미터 포함")
+    public void find_All_Products_Success_With_Page_And_Sort_Parameters() {
+        // 페이지와 정렬 파라미터를 포함한 URL
+        String url = getBaseUrl() + "/api/products";
+        CustomPage<ProductDefaultResponse> res = RestAssured.given()
+                .queryParam("page", 0)
+                .queryParam("size", 5)
+                .queryParam("sort", "price,desc")
+                .when()
+                .get(url)
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(new TypeRef<>() {});
+
+        Long prevPrice = Long.MAX_VALUE;
+        for (ProductDefaultResponse product : res.getContents()) {
+            Long currentPrice = product.price();
+            // 가격이 내림차순으로 정렬되어 있는지 확인
+            if (currentPrice != null) {
+                assertThat(currentPrice, lessThanOrEqualTo(prevPrice));
+                prevPrice = currentPrice;
+            }
+        }
     }
 
     @Test
@@ -92,6 +122,28 @@ public class ProductReadTest extends AbstractProductTest {
                 .then()
                 .statusCode(400);
     }
+
+    @Test
+    @DisplayName("전체 제품 조회 실패 테스트: 잘못된 정렬 기준으로 요청(400 Bad Request)")
+    public void find_All_Products_Failure_Invalid_Sort_Request_400_Returned() {
+       List<String> invalidSortFields = List.of(
+                "invalidField", // 존재하지 않는 정렬 기준
+                "price,invalidDirection", // 잘못된 정렬 방향
+                "name,asc,desc" // 잘못된 정렬 기준
+        );
+
+        invalidSortFields.forEach(sortField -> {
+            String url = getBaseUrl() + "/api/products";
+            RestAssured.given()
+                    .param("sort", sortField)
+                    .when()
+                    .get(url)
+                    .then()
+                    .statusCode(400)
+                    .body("validationErrors", notNullValue()); // 유효성 검사 오류가 발생해야 함
+        });
+    }
+
 
     @Test
     @DisplayName("특정 제품 조회 성공 테스트")

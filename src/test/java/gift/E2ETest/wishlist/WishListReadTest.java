@@ -1,13 +1,16 @@
 package gift.E2ETest.wishlist;
 
+import gift.dto.wishlist.WishedProductResponse;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
@@ -65,6 +68,29 @@ public class WishListReadTest extends AbstractWishlistTest {
     }
 
     @Test
+    @DisplayName("위시리스트 전체 조회 성공 테스트 : 정렬 파라미터 포함")
+    public void find_All_Wishlist_Success_With_Page_And_Size() {
+        List<WishedProductResponse> res = RestAssured.given()
+                .queryParam("sort", "product.price,desc")
+                .header(AUTH_HEADER_KEY, this.testToken)
+                .when()
+                .get(getRequestUrl())
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("contents", WishedProductResponse.class);
+
+        Long prevPrice = Long.MAX_VALUE;
+        for (WishedProductResponse product : res) {
+            // 가격이 내림차순으로 정렬되었는지 확인
+            assertThat(product.price(), lessThanOrEqualTo(prevPrice));
+            prevPrice = product.price();
+        }
+    }
+
+
+    @Test
     @DisplayName("위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환")
     public void find_All_Wishlist_Failure_Negative_Page_Request_400_Returned() {
         // 위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환
@@ -113,6 +139,27 @@ public class WishListReadTest extends AbstractWishlistTest {
                 .statusCode(403);
     }
 
+    @Test
+    @DisplayName("위시리스트 전체 조회 실패 테스트: 잘못된 정렬 파라미터 요청 시 400 반환(400 Bad Request)")
+    public void find_All_Wishlist_Failure_Invalid_Sort_Request_400_Returned() {
+        List<String> invalidSortFields = List.of(
+                "invalidField", // 존재하지 않는 정렬 기준
+                "product.price,invalidDirection", // 잘못된 정렬 방향
+                "product.name,asc,desc" // 잘못된 정렬 기준
+        );
+
+        invalidSortFields.forEach(sortField ->
+            RestAssured.given(this.spec)
+                    .filter(document("위시리스트 전체 조회 실패 - 잘못된 정렬 파라미터",
+                            queryParameters(PAGE_PARAMETERS),
+                            responseFields(ERROR_MESSAGE_FIELDS)))
+                    .header(AUTH_HEADER_KEY, this.testToken)
+                    .queryParam("sort", sortField)
+                    .when()
+                    .get(getRequestUrl())
+                    .then()
+                    .statusCode(400));
+    }
 
     @Test
     @DisplayName("위시리스트 단건 제품 조회 성공 테스트")
