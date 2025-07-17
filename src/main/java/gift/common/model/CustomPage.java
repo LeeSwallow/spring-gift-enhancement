@@ -15,14 +15,16 @@ public class CustomPage<T> {
     private final Integer size;
     private final Integer totalElements;
     private final Integer totalPages;
+    private List<CustomOrder> sort;
     private Map<String, Object> extras;
 
-    private CustomPage(
+    public CustomPage(
             List<T> contents,
             Integer page,
             Integer size,
             Integer totalElements,
             Integer totalPages,
+            List<CustomOrder> sort,
             Map<String, Object> extras
     ) {
         this.contents = contents;
@@ -30,6 +32,7 @@ public class CustomPage<T> {
         this.size = size;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
+        this.sort = sort;
         this.extras = extras;
     }
 
@@ -53,6 +56,10 @@ public class CustomPage<T> {
         return totalPages;
     }
 
+    public List<CustomOrder> getSort() {
+        return sort;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getExtras() {
         return extras;
@@ -69,6 +76,7 @@ public class CustomPage<T> {
                 page.getSize(),
                 (int) page.getTotalElements(),
                 page.getTotalPages(),
+                null,
                 null
         );
     }
@@ -80,8 +88,8 @@ public class CustomPage<T> {
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages(),
+                page.getSort(),
                 page.getExtras()
-
         );
     }
 }
