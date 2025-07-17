@@ -15,10 +15,12 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.restdocs.request.ParameterDescriptor;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.restassured.RestAssuredRestDocumentation.documentationConfiguration;
 
 @ActiveProfiles("test")
@@ -37,6 +39,22 @@ public abstract class AbstractControllerTest {
             headerWithName("authorization").description("JWT 인증 토큰").optional()
     };
 
+    public static final FieldDescriptor[] BASE_PAGINATION_FIELDS = {
+            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
+            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
+            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
+            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
+            fieldWithPath("sort").description("정렬 정보").type(JsonFieldType.ARRAY).optional(),
+            fieldWithPath("sort[].field").description("정렬 필드").type(JsonFieldType.STRING).optional(),
+            fieldWithPath("sort[].direction").description("정렬 방향").type(JsonFieldType.STRING).optional()
+    };
+
+    public static final ParameterDescriptor[] PAGE_PARAMETERS = {
+            parameterWithName("page").description("페이지 번호(0부터 시작)").optional(),
+            parameterWithName("size").description("페이지 크기(기본값: 5)").optional(),
+            parameterWithName("sort").description("정렬 기준(예: name[,desc],price)").optional()
+    };
+
     public static  final FieldDescriptor[] ERROR_MESSAGE_FIELDS = {
         fieldWithPath("type").description("에러를 해결할 수 있는 문서 주소").type(JsonFieldType.STRING),
         fieldWithPath("title").description("에러 제목").type(JsonFieldType.STRING),
@@ -49,6 +67,13 @@ public abstract class AbstractControllerTest {
         fieldWithPath("validationErrors[].field").description("유효성 검사 오류 필드").type(JsonFieldType.STRING).optional(),
         fieldWithPath("validationErrors[].message").description("유효성 검사 오류 메시지").type(JsonFieldType.STRING).optional(),
     };
+
+    public static FieldDescriptor[] concat(FieldDescriptor[] first, FieldDescriptor[] second) {
+        FieldDescriptor[] result = new FieldDescriptor[first.length + second.length];
+        System.arraycopy(first, 0, result, 0, first.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
 
     @BeforeEach
     protected void setUp(RestDocumentationContextProvider provider) {

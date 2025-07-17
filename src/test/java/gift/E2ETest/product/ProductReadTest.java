@@ -23,19 +23,16 @@ public class ProductReadTest extends AbstractProductTest {
             fieldWithPath("updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
     };
 
-    static final FieldDescriptor [] PRODUCT_READ_PAGE_RESPONSE = {
-            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
-            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("contents[]").description("제품 목록").type(JsonFieldType.ARRAY),
+    static final FieldDescriptor[] PRODUCT_READ_PAGE_RESPONSE = concat(BASE_PAGINATION_FIELDS, new FieldDescriptor[]{
+            fieldWithPath("contents").description("제품 목록").type(JsonFieldType.ARRAY).optional(),
             fieldWithPath("contents[].id").description("제품 ID").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].name").description("제품 이름").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].price").description("제품 가격").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].imageUrl").description("제품 이미지 URL").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].createdAt").description("제품 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
-    };
+    });
+
 
 
     @Test
@@ -69,10 +66,7 @@ public class ProductReadTest extends AbstractProductTest {
     public void find_All_Products_Failure_Negative_Page_Request_400_Returned() {
         RestAssured.given(this.spec)
                 .filter(document("상품 전체 조회 실패 - 음수 페이지 요청",
-                        queryParameters(
-                            parameterWithName("page").description("페이지 번호").optional(),
-                            parameterWithName("size").description("페이지 크기").optional()
-                        ),
+                        queryParameters(PAGE_PARAMETERS),
                         responseFields(ERROR_MESSAGE_FIELDS))
                 )
                 .when()

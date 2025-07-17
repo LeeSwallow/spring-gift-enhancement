@@ -28,11 +28,7 @@ public class WishListReadTest extends AbstractWishlistTest {
             fieldWithPath("updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
     };
 
-    static final FieldDescriptor[] PRODUCT_READ_PAGE_RESPONSE = {
-            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
-            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
+    static final FieldDescriptor[] PRODUCT_READ_PAGE_RESPONSE = concat(BASE_PAGINATION_FIELDS, new FieldDescriptor[]{
             fieldWithPath("totalQuantity").description("위시리스트에 추가된 제품의 총 수량").type(JsonFieldType.NUMBER),
             fieldWithPath("totalPrice").description("위시리스트에 추가된 제품의 총액").type(JsonFieldType.NUMBER),
             fieldWithPath("contents[]").description("제품 목록").type(JsonFieldType.ARRAY),
@@ -44,7 +40,7 @@ public class WishListReadTest extends AbstractWishlistTest {
             fieldWithPath("contents[].subtotal").description("위시리스트에 추가된 제품의 총액").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].createdAt").description("제품 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
-    };
+    });
 
     @Test
     @DisplayName("위시리스트 전체 조회 성공 테스트")
@@ -52,10 +48,7 @@ public class WishListReadTest extends AbstractWishlistTest {
         // 위시리스트 전체 조회 성공 테스트
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 전체 조회 성공",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
+                        queryParameters(PAGE_PARAMETERS),
                         responseFields(PRODUCT_READ_PAGE_RESPONSE)))
                 .header(AUTH_HEADER_KEY, this.testToken)
                 .when()

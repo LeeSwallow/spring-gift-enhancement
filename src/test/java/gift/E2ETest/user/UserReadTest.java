@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -19,11 +18,7 @@ import static org.springframework.restdocs.restassured.RestAssuredRestDocumentat
 
 public class UserReadTest extends  AbstractUserTest{
 
-    public static final FieldDescriptor[] MULTIPLE_ADMIN_READ_RESPONSE = {
-            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
-            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
+    public static final FieldDescriptor[] MULTIPLE_ADMIN_READ_RESPONSE = concat(BASE_PAGINATION_FIELDS, new FieldDescriptor[]{
             fieldWithPath("contents[]").description("사용자 목록").type(JsonFieldType.ARRAY),
             fieldWithPath("contents[].id").description("사용자 ID").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].email").description("사용자 이메일").type(JsonFieldType.STRING).optional(),
@@ -31,12 +26,7 @@ public class UserReadTest extends  AbstractUserTest{
             fieldWithPath("contents[].roles").description("사용자 역할 목록").type(JsonFieldType.ARRAY).optional(),
             fieldWithPath("contents[].createdAt").description("사용자 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("사용자 업데이트 시간").type(JsonFieldType.STRING).optional()
-    };
-
-    public static final ParameterDescriptor[] PAGE_PARAMETERS = {
-            parameterWithName("page").description("페이지 번호(0부터 시작)").optional(),
-            parameterWithName("size").description("페이지 크기(기본값: 5)").optional()
-    };
+    });
 
     public static final FieldDescriptor[] SINGLE_ADMIN_READ_RESPONSE = {
             fieldWithPath("id").description("사용자 ID").type(JsonFieldType.NUMBER),
