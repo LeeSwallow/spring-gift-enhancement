@@ -40,8 +40,8 @@ public class WishlistController {
             @RequestAttribute("auth") CustomAuth auth,
             @RequestParam(value = "sort", required = false)
             @SortParam(
-                    message = "정렬 파라미터는 id, productId, name, price, quantity, createdAt, updatedAt 중 하나여야 합니다.",
-                    allowedFields = {"id", "productId", "name", "price", "quantity", "createdAt", "updatedAt"}
+                    message = "정렬 파라미터는 id, productId, product.name, product.price, quantity, createdAt, updatedAt 중 하나여야 합니다.",
+                    allowedFields = {"id", "productId", "product.name", "product.price", "quantity", "createdAt", "updatedAt"}
             ) List<String> sortParams
     ) {
         CustomPage<WishedProduct> wishlistPage;
