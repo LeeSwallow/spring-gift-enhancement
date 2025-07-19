@@ -7,11 +7,10 @@ import gift.repository.wishlist.WishedProductRepository;
 import gift.service.product.ProductService;
 import gift.service.user.UserService;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -54,24 +53,13 @@ public class WishedProductServiceImpl implements WishedProductService {
 
     @Override
     @Transactional
-    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
+    public CustomPage<WishedProduct> findAllBy(Long userId, Pageable pageable) {
         validateUserId(userId);
-        var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
+        var pagedProducts = wishedProductRepository.findAllByUserId(userId, pageable);
         var customPage = ModelMapper.toCustomPage(pagedProducts);
         return addExtrasAndReturn(customPage, userId);
     }
 
-    @Override
-    @Transactional
-    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size, List<String> sortBy) {
-        validateUserId(userId);
-        var customOrders = ModelMapper.toCustomOrders(sortBy);
-        var pagedProducts = wishedProductRepository.findAllByUserId(
-                userId, PageRequest.of(page, size, ModelMapper.toSort(customOrders))
-        );
-        var customPage = ModelMapper.toCustomPage(pagedProducts, customOrders);
-        return addExtrasAndReturn(customPage, userId);
-    }
 
     @Override
     @Transactional

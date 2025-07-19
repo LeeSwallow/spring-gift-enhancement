@@ -6,11 +6,10 @@ import gift.entity.User;
 import gift.common.model.CustomPage;
 import gift.repository.user.UserRepository;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -26,18 +25,9 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
     @Override
-    public CustomPage<User> findAllBy(int page, int size) {
-        var pagedUsers = userRepository.findAllBy(PageRequest.of(page, size));
-        return ModelMapper.toCustomPage(pagedUsers);
-    }
-
-    @Override
-    public CustomPage<User> findAllBy(int page, int size, List<String> sortBy) {
-        var customOrders = ModelMapper.toCustomOrders(sortBy);
-        var pagedUsers = userRepository.findAllBy(PageRequest.of(page, size, ModelMapper.toSort(customOrders)));
-        return ModelMapper.toCustomPage(pagedUsers, customOrders);
+    public CustomPage<User> findAllBy(Pageable pageable) {
+        return ModelMapper.toCustomPage(userRepository.findAllBy(pageable));
     }
 
     @Override

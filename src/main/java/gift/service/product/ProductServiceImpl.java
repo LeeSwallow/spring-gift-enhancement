@@ -8,11 +8,10 @@ import gift.entity.UserRole;
 import gift.repository.product.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -37,18 +36,9 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-
     @Override
-    public CustomPage<Product> findAllBy(int page, int size) {
-        return ModelMapper.toCustomPage(productRepository.findAllBy(PageRequest.of(page, size)));
-    }
-
-    @Override
-    public CustomPage<Product> findAllBy(int page, int size, List<String> sortBy) {
-        var customOrders = ModelMapper.toCustomOrders(sortBy);
-
-        var pagedProducts = productRepository.findAllBy(PageRequest.of(page, size, ModelMapper.toSort(customOrders)));
-        return ModelMapper.toCustomPage(pagedProducts, customOrders);
+    public CustomPage<Product> findAllBy(Pageable pageable) {
+        return ModelMapper.toCustomPage(productRepository.findAllBy(pageable));
     }
 
     @Override
