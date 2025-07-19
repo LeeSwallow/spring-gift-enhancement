@@ -15,12 +15,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/api/products")
@@ -34,23 +34,9 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<CustomPage<ProductDefaultResponse>> getAllProducts(
-            @RequestParam(value = "page", defaultValue = "0")
-            @Min(value = 0, message = "페이지 번호는 0 이상이여야 합니다.") Integer page,
-            @RequestParam(value = "size", defaultValue = "5")
-            @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
-            @RequestParam(value = "sort", required = false)
-            @SortParam(
-                    message = "정렬 파라미터는 id, name, price, createdAt, updatedAt 중 하나여야 합니다.",
-                    allowedFields = {"id", "name", "price", "createdAt", "updatedAt"}
-            )
-            List<String> sortParams
-            ) {
-        CustomPage<Product> productPage;
-        if (sortParams == null || sortParams.isEmpty()) {
-            productPage = productService.findAllBy(page, size);
-        } else {
-            productPage = productService.findAllBy(page, size, sortParams);
-        }
+            @PageableDefault(size = 5) Pageable  pageable
+    ) {
+        CustomPage<Product> productPage = productService.findAllBy(pageable);
         return new ResponseEntity<>(CustomPage.convert(
                 productPage, EntityDtoMapper::toDto), HttpStatus.OK
         );

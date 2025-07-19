@@ -4,7 +4,6 @@ import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
-import gift.common.validation.annotation.SortParam;
 import gift.dto.wishlist.CreateWishedProductRequest;
 import gift.dto.wishlist.PatchWishedProductRequest;
 import gift.dto.wishlist.UpdateWishedProductRequest;
@@ -13,12 +12,12 @@ import gift.entity.UserRole;
 import gift.entity.WishedProduct;
 import gift.service.wishlist.WishedProductService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -33,23 +32,10 @@ public class WishlistController {
     @GetMapping
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<CustomPage<WishedProductResponse>> getWishlist(
-            @RequestParam(value = "page", defaultValue = "0")
-            @Min(value = 0, message = "페이지 번호는 0 이상이여야 합니다.") Integer page,
-            @RequestParam(value = "size", defaultValue = "5")
-            @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size,
-            @RequestAttribute("auth") CustomAuth auth,
-            @RequestParam(value = "sort", required = false)
-            @SortParam(
-                    message = "정렬 파라미터는 id, productId, product.name, product.price, quantity, createdAt, updatedAt 중 하나여야 합니다.",
-                    allowedFields = {"id", "productId", "product.name", "product.price", "quantity", "createdAt", "updatedAt"}
-            ) List<String> sortParams
+            @PageableDefault(size = 5) Pageable pageable,
+            @RequestAttribute("auth") CustomAuth auth
     ) {
-        CustomPage<WishedProduct> wishlistPage;
-        if (sortParams == null || sortParams.isEmpty()) {
-            wishlistPage = wishedProductService.findAllBy(auth.userId(), page, size);
-        } else {
-            wishlistPage = wishedProductService.findAllBy(auth.userId(), page, size, sortParams);
-        }
+        CustomPage<WishedProduct> wishlistPage = wishedProductService.findAllBy(auth.userId(), pageable);
         return new ResponseEntity<>(
                 CustomPage.convert(wishlistPage, EntityDtoMapper::toDto), HttpStatus.OK
         );
