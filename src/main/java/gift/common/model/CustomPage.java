@@ -2,7 +2,6 @@ package gift.common.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -15,14 +14,16 @@ public class CustomPage<T> {
     private final Integer size;
     private final Integer totalElements;
     private final Integer totalPages;
+    private final List<CustomOrder> sort;
     private Map<String, Object> extras;
 
-    private CustomPage(
+    public CustomPage(
             List<T> contents,
             Integer page,
             Integer size,
             Integer totalElements,
             Integer totalPages,
+            List<CustomOrder> sort,
             Map<String, Object> extras
     ) {
         this.contents = contents;
@@ -30,6 +31,7 @@ public class CustomPage<T> {
         this.size = size;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
+        this.sort = sort;
         this.extras = extras;
     }
 
@@ -53,6 +55,10 @@ public class CustomPage<T> {
         return totalPages;
     }
 
+    public List<CustomOrder> getSort() {
+        return sort;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getExtras() {
         return extras;
@@ -62,17 +68,6 @@ public class CustomPage<T> {
         this.extras = extras;
     }
 
-    public static <T> CustomPage<T> from(Page<T> page) {
-        return new CustomPage<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                (int) page.getTotalElements(),
-                page.getTotalPages(),
-                null
-        );
-    }
-
     public static <F, T> CustomPage<T> convert(CustomPage<F> page, Function<F, T> converter) {
         return new CustomPage<>(
                 page.getContents().stream().map(converter).toList(),
@@ -80,8 +75,8 @@ public class CustomPage<T> {
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages(),
+                page.getSort(),
                 page.getExtras()
-
         );
     }
 }

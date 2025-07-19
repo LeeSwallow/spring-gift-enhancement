@@ -2,11 +2,12 @@ package gift.service.wishlist;
 
 import gift.common.model.CustomPage;
 import gift.entity.WishedProduct;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
 public interface WishedProductService {
-    CustomPage<WishedProduct> findAllBy(Long userId, int page, int size);
+    CustomPage<WishedProduct> findAllBy(Long userId, Pageable pageable);
     WishedProduct findBy(Long userId, Long wishedProductId);
     WishedProduct create(Long userId, Long productId, Integer quantity);
     void deleteBy(Long userId, Long wishedProductId);

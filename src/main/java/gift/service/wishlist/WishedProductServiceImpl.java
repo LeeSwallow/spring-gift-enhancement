@@ -1,12 +1,13 @@
 package gift.service.wishlist;
 
+import gift.common.mapper.ModelMapper;
 import gift.common.model.CustomPage;
 import gift.entity.WishedProduct;
-import gift.repository.product.ProductRepository;
-import gift.repository.user.UserRepository;
 import gift.repository.wishlist.WishedProductRepository;
+import gift.service.product.ProductService;
+import gift.service.user.UserService;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,43 +18,48 @@ import java.util.Optional;
 @Service
 public class WishedProductServiceImpl implements WishedProductService {
     private final WishedProductRepository wishedProductRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final ProductService productService;
+    private final UserService userService;
 
     public WishedProductServiceImpl(
             WishedProductRepository wishedProductRepository,
-            ProductRepository productRepository,
-            UserRepository userRepository
+            ProductService productService,
+            UserService userService
     ) {
         this.wishedProductRepository = wishedProductRepository;
-        this.productRepository = productRepository;
-        this.userRepository = userRepository;
+        this.productService = productService;
+        this.userService = userService;
     }
 
     private void validateUserId(Long userId) {
-        if (!userRepository.existsById(userId)) {
+        if (!userService.existsById(userId)) {
             throw new NoSuchElementException("존재하지 않는 사용자입니다. userId: " + userId);
         }
     }
 
     public void validateProductId(Long productId) {
-        if (!productRepository.existsById(productId)) {
+        if (!productService.existsById(productId)) {
             throw new NoSuchElementException("존재하지 않는 제품입니다. productId: " + productId);
         }
     }
 
-    @Override
-    @Transactional
-    public CustomPage<WishedProduct> findAllBy(Long userId, int page, int size) {
-        validateUserId(userId);
-        var pagedProducts = wishedProductRepository.findAllByUserId(userId, PageRequest.of(page, size));
-        var customPage = CustomPage.from(pagedProducts);
+    private CustomPage<WishedProduct> addExtrasAndReturn(CustomPage<WishedProduct> customPage, Long userId) {
         var stats = wishedProductRepository.calculateStatsByUserId(userId);
         customPage.setExtras(
                 Map.of("totalQuantity", stats.getTotalQuantity(), "totalPrice", stats.getTotalPrice())
         );
         return customPage;
     }
+
+    @Override
+    @Transactional
+    public CustomPage<WishedProduct> findAllBy(Long userId, Pageable pageable) {
+        validateUserId(userId);
+        var pagedProducts = wishedProductRepository.findAllByUserId(userId, pageable);
+        var customPage = ModelMapper.toCustomPage(pagedProducts);
+        return addExtrasAndReturn(customPage, userId);
+    }
+
 
     @Override
     @Transactional
@@ -76,8 +82,8 @@ public class WishedProductServiceImpl implements WishedProductService {
         if (wishedProductRepository.existsByUserIdAndProductId(userId, productId)) {
             throw new DuplicateKeyException("이미 장바구니에 존재하는 제품입니다. productId: " + productId);
         }
-        var productRef = productRepository.getReferenceById(productId);
-        var userRef = userRepository.getReferenceById(userId);
+        var productRef = productService.getReference(productId);
+        var userRef = userService.getReference(userId);
         return wishedProductRepository.save(new WishedProduct(null, userRef, productRef, quantity));
     }
 

@@ -1,13 +1,14 @@
 package gift.service.product;
 
 import gift.common.exception.AccessDeniedException;
+import gift.common.mapper.ModelMapper;
 import gift.common.model.CustomPage;
 import gift.entity.Product;
 import gift.entity.UserRole;
 import gift.repository.product.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +36,9 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-
     @Override
-    public CustomPage<Product> findAllBy(int page, int size) {
-        return CustomPage.from(productRepository.findAllBy(PageRequest.of(page, size)));
+    public CustomPage<Product> findAllBy(Pageable pageable) {
+        return ModelMapper.toCustomPage(productRepository.findAllBy(pageable));
     }
 
     @Override
@@ -90,5 +90,15 @@ public class ProductServiceImpl implements ProductService {
         Product deleted = findById(productId);
         validateProduct(deleted, role, userId);
         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public Boolean existsById(Long productId) {
+        return productRepository.existsById(productId);
+    }
+
+    @Override
+    public Product getReference(Long productId) {
+        return productRepository.getReferenceById(productId);
     }
 }

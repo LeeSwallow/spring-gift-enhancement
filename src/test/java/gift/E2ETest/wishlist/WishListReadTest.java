@@ -1,13 +1,16 @@
 package gift.E2ETest.wishlist;
 
+import gift.dto.wishlist.WishedProductResponse;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
@@ -28,11 +31,7 @@ public class WishListReadTest extends AbstractWishlistTest {
             fieldWithPath("updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
     };
 
-    static final FieldDescriptor[] PRODUCT_READ_PAGE_RESPONSE = {
-            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
-            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
+    static final FieldDescriptor[] PRODUCT_READ_PAGE_RESPONSE = concat(BASE_PAGINATION_FIELDS, new FieldDescriptor[]{
             fieldWithPath("totalQuantity").description("위시리스트에 추가된 제품의 총 수량").type(JsonFieldType.NUMBER),
             fieldWithPath("totalPrice").description("위시리스트에 추가된 제품의 총액").type(JsonFieldType.NUMBER),
             fieldWithPath("contents[]").description("제품 목록").type(JsonFieldType.ARRAY),
@@ -44,7 +43,7 @@ public class WishListReadTest extends AbstractWishlistTest {
             fieldWithPath("contents[].subtotal").description("위시리스트에 추가된 제품의 총액").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].createdAt").description("제품 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("제품 업데이트 시간").type(JsonFieldType.STRING).optional()
-    };
+    });
 
     @Test
     @DisplayName("위시리스트 전체 조회 성공 테스트")
@@ -52,10 +51,7 @@ public class WishListReadTest extends AbstractWishlistTest {
         // 위시리스트 전체 조회 성공 테스트
         RestAssured.given(this.spec)
                 .filter(document("위시리스트 전체 조회 성공",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
+                        queryParameters(PAGE_PARAMETERS),
                         responseFields(PRODUCT_READ_PAGE_RESPONSE)))
                 .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
@@ -72,35 +68,42 @@ public class WishListReadTest extends AbstractWishlistTest {
     }
 
     @Test
-    @DisplayName("위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환")
-    public void find_All_Wishlist_Failure_Negative_Page_Request_400_Returned() {
-        // 위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환
-        RestAssured.given(this.spec)
-                .filter(document("위시리스트 전체 조회 실패 - 음수 페이지 요청",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
-                        responseFields(ERROR_MESSAGE_FIELDS)))
+    @DisplayName("위시리스트 전체 조회 성공 테스트 : 정렬 파라미터 포함")
+    public void find_All_Wishlist_Success_With_Page_And_Size() {
+        List<WishedProductResponse> res = RestAssured.given()
+                .queryParam("sort", "product.price,desc")
                 .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
-                .get(getRequestUrl() + "?page=-1&size=5")
+                .get(getRequestUrl())
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("contents", WishedProductResponse.class);
 
-        // 위시리스트 전체 조회 실패 테스트 : 잘못된 크기 요청 시 400 반환
-        RestAssured.given(this.spec)
-                .filter(document("위시리스트 전체 조회 실패 - 음수 크기 요청",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
-                        responseFields(ERROR_MESSAGE_FIELDS)))
+        Long prevPrice = Long.MAX_VALUE;
+        for (WishedProductResponse product : res) {
+            // 가격이 내림차순으로 정렬되었는지 확인
+            assertThat(product.price(), lessThanOrEqualTo(prevPrice));
+            prevPrice = product.price();
+        }
+    }
+
+
+    @Test
+    @DisplayName("위시리스트 전체 조회 성공 테스트 : 음수 페이지와 크기 요청 시 기본값 적용")
+    public void find_All_Wishlist_Success_Negative_Page_And_Size_Request_Default_Returned() {
+        // 위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환
+        RestAssured.given()
+                .queryParam("page", -1)
+                .queryParam("size", -1)
                 .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
-                .get(getRequestUrl() + "?page=0&size=-1")
+                .get(getRequestUrl())
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("page", equalTo(0)) // 기본 페이지 0
+                .body("size", equalTo(5)); // 기본 크기 5
     }
 
     @Test
@@ -120,6 +123,27 @@ public class WishListReadTest extends AbstractWishlistTest {
                 .statusCode(403);
     }
 
+    @Test
+    @DisplayName("위시리스트 전체 조회 실패 테스트: 잘못된 정렬 파라미터 요청 시 400 반환(400 Bad Request)")
+    public void find_All_Wishlist_Failure_Invalid_Sort_Request_400_Returned() {
+        List<String> invalidSortFields = List.of(
+                "invalidField", // 존재하지 않는 정렬 기준
+                "product.price,invalidDirection", // 잘못된 정렬 방향
+                "product.name,asc,desc" // 잘못된 정렬 기준
+        );
+
+        invalidSortFields.forEach(sortField ->
+            RestAssured.given(this.spec)
+                    .filter(document("위시리스트 전체 조회 실패 - 잘못된 정렬 파라미터",
+                            queryParameters(PAGE_PARAMETERS),
+                            responseFields(ERROR_MESSAGE_FIELDS)))
+                    .header(AUTH_HEADER_KEY, this.testToken)
+                    .queryParam("sort", sortField)
+                    .when()
+                    .get(getRequestUrl())
+                    .then()
+                    .statusCode(400));
+    }
 
     @Test
     @DisplayName("위시리스트 단건 제품 조회 성공 테스트")

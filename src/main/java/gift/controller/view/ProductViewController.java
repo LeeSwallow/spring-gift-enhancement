@@ -10,6 +10,7 @@ import gift.entity.UserRole;
 import gift.service.product.ProductService;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +47,7 @@ public class ProductViewController {
         @RequestParam(value = "size", defaultValue = "5")
         @Min(value = 1, message = "페이지 크기는 양수여야 합니다.") Integer size
     ) {
-        CustomPage<Product> currentPage = productService.findAllBy(page, size);
+        CustomPage<Product> currentPage = productService.findAllBy(PageRequest.of(page, size));
         int start = Math.max(0, currentPage.getPage() - 2);
         int end = Math.min(currentPage.getTotalPages() - 1, currentPage.getPage() + 2);
 

@@ -1,22 +1,32 @@
 package gift.common.util;
 
 import gift.common.exception.CriticalServerException;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @Component
-@DependsOn("serverStartupVerifier")
-public class PasswordEncoder {
+public class PasswordEncoder implements InitializingBean {
     private final String passwordEncodingAlgorithm;
 
     public PasswordEncoder(
-            @Value("${gift.password.encoder.algorithm:SHA-256}") String passwordEncodingAlgorithm
+            @Value("${gift.password.encoder.algorithm:SHA-256}")
+            String passwordEncodingAlgorithm
     ) {
         this.passwordEncodingAlgorithm = passwordEncodingAlgorithm;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        try {
+            encode("test");
+        } catch (CriticalServerException e) {
+            throw new BeanInitializationException(e.getMessage());
+        }
     }
 
     public String encode(String password) {

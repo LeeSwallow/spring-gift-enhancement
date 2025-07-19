@@ -1,16 +1,19 @@
 package gift.E2ETest.user;
 
+import gift.common.model.CustomPage;
 import gift.dto.user.UserAdminResponse;
 import gift.entity.UserRole;
 import io.restassured.RestAssured;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
@@ -19,11 +22,7 @@ import static org.springframework.restdocs.restassured.RestAssuredRestDocumentat
 
 public class UserReadTest extends  AbstractUserTest{
 
-    public static final FieldDescriptor[] MULTIPLE_ADMIN_READ_RESPONSE = {
-            fieldWithPath("page").description("현재 페이지 번호").type(JsonFieldType.NUMBER),
-            fieldWithPath("size").description("페이지 크기").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalElements").description("전체 요소 수").type(JsonFieldType.NUMBER),
-            fieldWithPath("totalPages").description("전체 페이지 수").type(JsonFieldType.NUMBER),
+    public static final FieldDescriptor[] MULTIPLE_ADMIN_READ_RESPONSE = concat(BASE_PAGINATION_FIELDS, new FieldDescriptor[]{
             fieldWithPath("contents[]").description("사용자 목록").type(JsonFieldType.ARRAY),
             fieldWithPath("contents[].id").description("사용자 ID").type(JsonFieldType.NUMBER).optional(),
             fieldWithPath("contents[].email").description("사용자 이메일").type(JsonFieldType.STRING).optional(),
@@ -31,12 +30,7 @@ public class UserReadTest extends  AbstractUserTest{
             fieldWithPath("contents[].roles").description("사용자 역할 목록").type(JsonFieldType.ARRAY).optional(),
             fieldWithPath("contents[].createdAt").description("사용자 생성 시간").type(JsonFieldType.STRING).optional(),
             fieldWithPath("contents[].updatedAt").description("사용자 업데이트 시간").type(JsonFieldType.STRING).optional()
-    };
-
-    public static final ParameterDescriptor[] PAGE_PARAMETERS = {
-            parameterWithName("page").description("페이지 번호(0부터 시작)").optional(),
-            parameterWithName("size").description("페이지 크기(기본값: 5)").optional()
-    };
+    });
 
     public static final FieldDescriptor[] SINGLE_ADMIN_READ_RESPONSE = {
             fieldWithPath("id").description("사용자 ID").type(JsonFieldType.NUMBER),
@@ -82,6 +76,32 @@ public class UserReadTest extends  AbstractUserTest{
     }
 
     @Test
+    @DisplayName("다건 사용자 조회 성공 테스트: 페이지 파라미터와 정렬 기준 포함")
+    public void find_All_Users_Success_With_Page_And_Sort() {
+        String url = getRequestUrl();
+        CustomPage<UserAdminResponse> res = RestAssured.given()
+                .contentType("application/json")
+                .header(AUTH_HEADER_KEY, this.testUserTokens.get(UserRole.ROLE_ADMIN)) // 관리자 권한으로 요청
+                .queryParam("page", 0)
+                .queryParam("size", 5)
+                .queryParam("sort", "email,desc") // 이메일 내림차순 정렬
+                .when()
+                .get(url)
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(new TypeRef<>() {});
+
+        String prevEmail = res.getContents().getFirst().email();
+        for (UserAdminResponse user : res.getContents()) {
+            String currentEmail = user.email();
+            // 이메일이 내림차순으로 정렬되어 있는지 확인
+            assertThat(currentEmail, lessThanOrEqualTo(prevEmail));
+            prevEmail = currentEmail;
+        }
+    }
+
+    @Test
     @DisplayName("다건 사용자 조회 실패 테스트: 관리자 권한 없이 요청(403 Forbidden)")
     public void find_All_Users_Failure_NoAuth() {
         String url = getRequestUrl();
@@ -94,16 +114,43 @@ public class UserReadTest extends  AbstractUserTest{
     }
 
     @Test
-    @DisplayName("다건 사용자 실패 테스트: page 파라미터가 음수인 경우 400 Bad Request")
-    public void find_All_Users_Failure_Negative_Page_Request() {
+    @DisplayName("다건 사용자 성공 테스트: page, size 파라미터가 음수인 경우(기본값 적용)")
+    public void find_All_Users_Success_Negative_Page_And_Size_Request() {
         String url = getRequestUrl();
         RestAssured.given()
                 .contentType("application/json")
                 .header(AUTH_HEADER_KEY, this.testUserTokens.get(UserRole.ROLE_ADMIN)) // 관리자 권한으로 요청
+                .queryParam("page", -1) // 음수 페이지 번호
+                .queryParam("size", -5) // 음수 페이지 크기
                 .when()
-                .get(url + "?page=-1&size=5")
+                .get(url)
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("page", equalTo(0)) // 기본값 0으로 설정
+                .body("size", equalTo(5));// 기본값 5로 설정
+    }
+
+    @Test
+    @DisplayName("다건 사용자 조회 실패 테스트: 잘못된 정렬 기준으로 요청(400 Bad Request)")
+    public void find_All_Users_Failure_Invalid_Sort_Request() {
+        List<String> invalidSortFields = List.of(
+                "invalidField", // 존재하지 않는 정렬 기준
+                "email,invalidDirection", // 잘못된 정렬 방향
+                "email,asc,desc" // 잘못된 정렬 기준
+        );
+
+        invalidSortFields.forEach(sortField -> {
+            String url = getRequestUrl();
+            RestAssured.given()
+                    .contentType("application/json")
+                    .param("sort", sortField)
+                    .header(AUTH_HEADER_KEY, this.testUserTokens.get(UserRole.ROLE_ADMIN)) // 관리자 권한으로 요청
+                    .when()
+                    .get(url)
+                    .then()
+                    .statusCode(400)
+                    .body("validationErrors", notNullValue());
+        });
     }
 
     @Test

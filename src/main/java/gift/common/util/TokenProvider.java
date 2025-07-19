@@ -1,6 +1,5 @@
 package gift.common.util;
 
-import gift.common.exception.CriticalServerException;
 import gift.entity.UserRole;
 import gift.common.model.CustomAuth;
 import io.jsonwebtoken.Claims;
@@ -11,9 +10,9 @@ import io.jsonwebtoken.security.SecurityException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.security.*;
 import javax.crypto.SecretKey;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
-@DependsOn("serverStartupVerifier")
 public class TokenProvider implements InitializingBean {
     private static final String AUTHORITIES_KEY = "auth";
     private static final Logger log = LoggerFactory.getLogger(TokenProvider.class);
@@ -44,15 +42,20 @@ public class TokenProvider implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws CriticalServerException {
+    public void afterPropertiesSet() {
         if (secret == null || secret.isEmpty()) {
-            throw new CriticalServerException(
-                "설정을 통해 올바른 JWT 비밀 키를 제공해야 합니다.: jwt.secret=???"
+            throw new BeanInitializationException(
+                "설정을 통해 올바른 JWT 비밀 키를 제공해야 합니다.: gift.jwt.secret=???"
+            );
+        }
+        if (secret.length() < 32) {
+            throw new BeanInitializationException(
+                "설정을 통해 최소 32자 이상의 JWT 비밀 키를 제공해야 합니다.: gift.jwt.secret=???"
             );
         }
         if (expiration == null || expiration <= 0) {
-            throw new CriticalServerException(
-                "설정을 통해 올바른 JWT 만료 기간을 제공해야 합니다.: jwt.expiration=???"
+            throw new BeanInitializationException(
+                "설정을 통해 올바른 JWT 만료 기간을 제공해야 합니다.: gift.jwt.expiration=???"
             );
         }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
