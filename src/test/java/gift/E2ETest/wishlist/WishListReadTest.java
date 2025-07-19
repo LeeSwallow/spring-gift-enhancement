@@ -91,35 +91,19 @@ public class WishListReadTest extends AbstractWishlistTest {
 
 
     @Test
-    @DisplayName("위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환")
-    public void find_All_Wishlist_Failure_Negative_Page_Request_400_Returned() {
+    @DisplayName("위시리스트 전체 조회 성공 테스트 : 음수 페이지와 크기 요청 시 기본값 적용")
+    public void find_All_Wishlist_Success_Negative_Page_And_Size_Request_Default_Returned() {
         // 위시리스트 전체 조회 실패 테스트 : 잘못된 페이지 요청 시 400 반환
-        RestAssured.given(this.spec)
-                .filter(document("위시리스트 전체 조회 실패 - 음수 페이지 요청",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
-                        responseFields(ERROR_MESSAGE_FIELDS)))
+        RestAssured.given()
+                .queryParam("page", -1)
+                .queryParam("size", -1)
                 .header(AUTH_HEADER_KEY, this.testToken)
                 .when()
-                .get(getRequestUrl() + "?page=-1&size=5")
+                .get(getRequestUrl())
                 .then()
-                .statusCode(400);
-
-        // 위시리스트 전체 조회 실패 테스트 : 잘못된 크기 요청 시 400 반환
-        RestAssured.given(this.spec)
-                .filter(document("위시리스트 전체 조회 실패 - 음수 크기 요청",
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호").optional(),
-                                parameterWithName("size").description("페이지 크기").optional()
-                        ),
-                        responseFields(ERROR_MESSAGE_FIELDS)))
-                .header(AUTH_HEADER_KEY, this.testToken)
-                .when()
-                .get(getRequestUrl() + "?page=0&size=-1")
-                .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("page", equalTo(0)) // 기본 페이지 0
+                .body("size", equalTo(5)); // 기본 크기 5
     }
 
     @Test

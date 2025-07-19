@@ -114,16 +114,20 @@ public class UserReadTest extends  AbstractUserTest{
     }
 
     @Test
-    @DisplayName("다건 사용자 실패 테스트: page 파라미터가 음수인 경우 400 Bad Request")
-    public void find_All_Users_Failure_Negative_Page_Request() {
+    @DisplayName("다건 사용자 성공 테스트: page, size 파라미터가 음수인 경우(기본값 적용)")
+    public void find_All_Users_Success_Negative_Page_And_Size_Request() {
         String url = getRequestUrl();
         RestAssured.given()
                 .contentType("application/json")
                 .header(AUTH_HEADER_KEY, this.testUserTokens.get(UserRole.ROLE_ADMIN)) // 관리자 권한으로 요청
+                .queryParam("page", -1) // 음수 페이지 번호
+                .queryParam("size", -5) // 음수 페이지 크기
                 .when()
-                .get(url + "?page=-1&size=5")
+                .get(url)
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("page", equalTo(0)) // 기본값 0으로 설정
+                .body("size", equalTo(5));// 기본값 5로 설정
     }
 
     @Test

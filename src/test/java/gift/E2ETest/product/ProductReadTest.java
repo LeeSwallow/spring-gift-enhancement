@@ -92,35 +92,27 @@ public class ProductReadTest extends AbstractProductTest {
     }
 
     @Test
-    @DisplayName("전체 제품 조회 실패 테스트 : 음수 페이지 요청 시 400 반환")
-    public void find_All_Products_Failure_Negative_Page_Request_400_Returned() {
-        RestAssured.given(this.spec)
-                .filter(document("상품 전체 조회 실패 - 음수 페이지 요청",
-                        queryParameters(PAGE_PARAMETERS),
-                        responseFields(ERROR_MESSAGE_FIELDS))
-                )
+    @DisplayName("전체 제품 조회 성공 테스트 : 음수 페이지 요청 시 400 반환")
+    public void find_All_Products_Success_Negative_Page_Request_default_page_Returned() {
+        RestAssured.given()
                 .when()
-                .get(getBaseUrl() + "/api/products?page=-1&size=5")
+                .queryParam("page", -1)
+                .get(getBaseUrl() + "/api/products")
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("page", equalTo(0)); // 페이지 번호가 0으로 처리되어야 함
     }
 
     @Test
-    @DisplayName("전체 제품 조회 실패 테스트 : 음수 크기 요청 시 400 반환")
-    public void find_All_Products_Failure_Negative_Size_Request_400_Returned() {
-        String url = getBaseUrl() + "/api/products?page=0&size=-1";
-        RestAssured.given(this.spec)
-                .filter(document("상품 전체 조회 실패 - 음수 크기 요청",
-                        queryParameters(
-                            parameterWithName("page").description("페이지 번호").optional(),
-                            parameterWithName("size").description("페이지 크기").optional()
-                        ),
-                        responseFields(ERROR_MESSAGE_FIELDS))
-                )
+    @DisplayName("전체 제품 조회 성공 테스트 : 음수 크기 요청 default 5으로 처리")
+    public void find_All_Products_Success_Negative_Size_Request_default_size_Returned() {
+        RestAssured.given()
+                .queryParam("size", -1)
                 .when()
-                .get(url)
+                .get(getBaseUrl() + "/api/products")
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("size", equalTo(5)); // 기본 크기 5로 처리되어야 함
     }
 
     @Test
