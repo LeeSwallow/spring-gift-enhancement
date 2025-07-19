@@ -3,6 +3,7 @@ package gift.controller.api;
 import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
+import gift.common.validation.annotation.AllowedSortFields;
 import gift.dto.product.ProductDefaultResponse;
 import gift.common.model.CustomPage;
 import gift.dto.product.ProductCreateRequest;
@@ -33,6 +34,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<CustomPage<ProductDefaultResponse>> getAllProducts(
+            @AllowedSortFields(value = { "id", "name", "price", "createdAt", "updatedAt" }, showAllowedFields = true)
             @PageableDefault(size = 5) Pageable  pageable
     ) {
         CustomPage<Product> productPage = productService.findAllBy(pageable);

@@ -4,6 +4,7 @@ import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
 import gift.common.model.CustomPage;
+import gift.common.validation.annotation.AllowedSortFields;
 import gift.dto.wishlist.CreateWishedProductRequest;
 import gift.dto.wishlist.PatchWishedProductRequest;
 import gift.dto.wishlist.UpdateWishedProductRequest;
@@ -32,6 +33,10 @@ public class WishlistController {
     @GetMapping
     @PreAuthorize(UserRole.ROLE_USER)
     public ResponseEntity<CustomPage<WishedProductResponse>> getWishlist(
+            @AllowedSortFields(
+                value = {"id", "product.price", "product.name", "quantity", "createdAt", "updatedAt"},
+                showAllowedFields = true
+            )
             @PageableDefault(size = 5) Pageable pageable,
             @RequestAttribute("auth") CustomAuth auth
     ) {

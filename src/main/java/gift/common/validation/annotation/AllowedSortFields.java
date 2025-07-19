@@ -1,18 +1,19 @@
 package gift.common.validation.annotation;
 
-import gift.common.validation.validator.SortParamValidator;
+import gift.common.validation.validator.AllowedSortFieldsValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = SortParamValidator.class)
+@Constraint(validatedBy = AllowedSortFieldsValidator.class)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SortParam {
-    String[] allowedFields() default {};
-    String message() default "유효하지 않은 정렬 파라미터입니다.";
+public @interface AllowedSortFields {
+    String[] value() default {};
+    String message() default "허용되지 않은 정렬 필드입니다.";
+    boolean showAllowedFields() default false;
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

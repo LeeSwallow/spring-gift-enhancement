@@ -4,6 +4,7 @@ package gift.controller.api;
 import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
+import gift.common.validation.annotation.AllowedSortFields;
 import gift.dto.user.UserCreateRequest;
 import gift.dto.user.UserAdminResponse;
 import gift.dto.user.UserDefaultResponse;
@@ -35,6 +36,7 @@ public class UserController {
     @GetMapping
     @PreAuthorize(UserRole.ROLE_ADMIN)
     public ResponseEntity<CustomPage<UserAdminResponse>> getAllUsers(
+            @AllowedSortFields(value = { "id", "email", "createdAt", "updatedAt" }, showAllowedFields = true)
             @PageableDefault(size = 5) Pageable pageable
     ) {
         CustomPage<User> userPage = userService.findAllBy(pageable);
