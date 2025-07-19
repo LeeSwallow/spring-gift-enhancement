@@ -3,7 +3,6 @@ package gift.controller.api;
 import gift.common.aop.annotation.PreAuthorize;
 import gift.common.mapper.EntityDtoMapper;
 import gift.common.model.CustomAuth;
-import gift.common.validation.annotation.SortParam;
 import gift.dto.product.ProductDefaultResponse;
 import gift.common.model.CustomPage;
 import gift.dto.product.ProductCreateRequest;
